@@ -2,10 +2,10 @@ package eventgenerator
 
 import (
 	"math"
+	"math/rand"
 	"time"
 
 	"github.com/HydrologicEngineeringCenter/go-statistics/statistics"
-	"github.com/usace/wat-go-sdk/plugin"
 )
 
 type Model struct {
@@ -23,17 +23,24 @@ type ModelResult struct {
 	TimeWindowEnd     time.Time      `json:"timewindow_end"`
 }
 
-func Init(input plugin.ResourceInfo) (Model, error) {
-	return Model{}, nil
-}
 func (m Model) Compute(eventIndex int) (ModelResult, error) {
 	result := ModelResult{}
 	eventNumber := math.Mod(float64(eventIndex), float64(m.EventsPerRealization))
 	realizationNumber := math.Floor(float64(eventIndex) / float64(m.EventsPerRealization))
-
+	//set event number and realization number
 	result.EventNumber = int(math.Floor(eventNumber))
 	result.RealizationNumber = int(realizationNumber)
 	//compute seeds
+	outputSeeds := make(map[string]int)
+	rng := rand.New(rand.NewSource(int64(eventIndex)))
+	for s, seed := range m.Seeds {
+		modelSeed := m.InitialSeed
+		modelSeed += seed
+		modelSeed += rng.Int()
+		outputSeeds[s] = modelSeed
+	}
+	result.Seeds = outputSeeds
+	//sample time window start date
 
 	return result, nil
 }
