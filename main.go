@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/henrygeorgist/eventgenerator/model"
+	"github.com/henrygeorgist/eventgenerator/eventgenerator"
 	"github.com/usace/wat-go-sdk/plugin"
 )
 
@@ -74,7 +74,7 @@ func main() {
 	//how am i supposed to know which file is the input model file?
 	//i dont know what the model name is - i need to know that to find the right file to load.
 	modelResourceInfo := payload.Inputs[0].ResourceInfo //wag
-	eventGeneratorModel, err := model.Init(modelResourceInfo)
+	eventGeneratorModel, err := eventgenerator.Init(modelResourceInfo)
 	if err != nil {
 		plugin.Log(plugin.Message{
 			Status:    plugin.FAILED,
