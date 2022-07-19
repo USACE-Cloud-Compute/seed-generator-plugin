@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"strings"
 
 	"github.com/henrygeorgist/eventgenerator/eventgenerator"
 	"github.com/usace/wat-go-sdk/plugin"
@@ -25,7 +27,7 @@ func main() {
 		})
 		return
 	}
-	err := plugin.InitConfigFromPath("howDoIGetThePluginConfigPassedIn?")
+	err := plugin.InitConfigFromEnv()
 	if err != nil {
 		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
 		return
@@ -35,9 +37,22 @@ func main() {
 		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
 		return
 	}
-	//how am i supposed to know which file is the input model file?
-	//i dont know what the model name is - i need to know that to find the right file to load.
-	modelResourceInfo := payload.Inputs[0].ResourceInfo //wag
+	if len(payload.Outputs) != 1 {
+		logError(errors.New("more than one output was defined"), payload)
+		return
+	}
+	var modelResourceInfo plugin.ResourceInfo
+	found := false
+	for _, rfd := range payload.Inputs {
+		if strings.Contains(rfd.FileName, payload.Model.Name+".json") {
+			modelResourceInfo = rfd.ResourceInfo
+			found = true
+		}
+	}
+	if !found {
+		logError(fmt.Errorf("could not find %s.json", payload.Model.Name), payload)
+		return
+	}
 	modelBytes, err := plugin.DownloadObject(modelResourceInfo)
 	if err != nil {
 		logError(err, payload)
