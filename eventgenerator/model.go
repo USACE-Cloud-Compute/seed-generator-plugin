@@ -43,7 +43,7 @@ func (m Model) Compute(eventIndex int) (ModelResult, error) {
 	//sample time window start date
 	dayOfYear := int(m.TimeWindowStartDistribution.Value.InvCDF(rng.Float64()))
 	result.TimeWindowStart = time.Date(1984, time.January, dayOfYear, 0, 0, 0, 0, time.Local)
-	days := int(math.Floor(float64(m.TimeWindowDurationInHours / 24)))
+	days := m.TimeWindowDurationInHours / 24
 	hours := m.TimeWindowDurationInHours - (days * 24)
 	result.TimeWindowEnd = time.Date(1984, time.January, dayOfYear+days, hours, 0, 0, 0, time.Local)
 	return result, nil
