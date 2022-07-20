@@ -9,11 +9,11 @@ import (
 )
 
 type Model struct {
-	InitialSeed                 int                               `json:"initial_seed"`
-	EventsPerRealization        int                               `json:"events_per_realization"`
-	Seeds                       map[string]int                    `json:"model_seeds"` //model or plugin name and string
-	TimeWindowDurationInHours   int                               `json:"timewindow_duration"`
-	TimeWindowStartDistribution statistics.ContinuousDistribution `json:"timewindow_start_distribution"`
+	InitialSeed                 int                                        `json:"initial_seed"`
+	EventsPerRealization        int                                        `json:"events_per_realization"`
+	Seeds                       map[string]int                             `json:"model_seeds"` //model or plugin name and string
+	TimeWindowDurationInHours   int                                        `json:"timewindow_duration"`
+	TimeWindowStartDistribution statistics.ContinuousDistributionContainer `json:"timewindow_start_distribution"`
 }
 type ModelResult struct {
 	EventNumber       int            `json:"event_number"`
@@ -41,6 +41,10 @@ func (m Model) Compute(eventIndex int) (ModelResult, error) {
 	}
 	result.Seeds = outputSeeds
 	//sample time window start date
-
+	dayOfYear := int(m.TimeWindowStartDistribution.Value.InvCDF(rng.Float64()))
+	result.TimeWindowStart = time.Date(1984, time.January, dayOfYear, 0, 0, 0, 0, time.Local)
+	days := int(math.Floor(float64(m.TimeWindowDurationInHours / 24)))
+	hours := m.TimeWindowDurationInHours - (days * 24)
+	result.TimeWindowEnd = time.Date(1984, time.January, dayOfYear+days, hours, 0, 0, 0, time.Local)
 	return result, nil
 }
