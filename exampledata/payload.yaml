@@ -1,0 +1,16 @@
+payload_id: payloadIDstring
+model:
+  name: eg
+event_index: 12
+inputs:
+  - filename: eg.json
+    resource_info:
+      store: Local
+      root: ./
+      path: ./exampledata/eg.json
+outputs:
+  - filename: event_configuration.json
+    resource_info:
+      store: Local
+      root: ./
+      path: ./exampledata/event_configuration.json

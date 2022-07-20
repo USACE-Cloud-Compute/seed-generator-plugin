@@ -8,19 +8,24 @@ import (
 	"github.com/HydrologicEngineeringCenter/go-statistics/statistics"
 )
 
+type PluginSeed struct {
+	Plugin string `json:"plugin"`
+	Seed   int    `json:"seed"`
+}
 type Model struct {
 	InitialSeed                 int                                        `json:"initial_seed"`
 	EventsPerRealization        int                                        `json:"events_per_realization"`
-	Seeds                       map[string]int                             `json:"model_seeds"` //model or plugin name and string
+	Seeds                       []PluginSeed                               `json:"model_seeds"` //model or plugin name and string
 	TimeWindowDurationInHours   int                                        `json:"timewindow_duration"`
 	TimeWindowStartDistribution statistics.ContinuousDistributionContainer `json:"timewindow_start_distribution"`
 }
+
 type ModelResult struct {
-	EventNumber       int            `json:"event_number"`
-	RealizationNumber int            `json:"realization_number"`
-	Seeds             map[string]int `json:"model_seeds"` //model or plugin name and string
-	TimeWindowStart   time.Time      `json:"timewindow_start"`
-	TimeWindowEnd     time.Time      `json:"timewindow_end"`
+	EventNumber       int          `json:"event_number"`
+	RealizationNumber int          `json:"realization_number"`
+	Seeds             []PluginSeed `json:"model_seeds"` //model or plugin name and string
+	TimeWindowStart   time.Time    `json:"timewindow_start"`
+	TimeWindowEnd     time.Time    `json:"timewindow_end"`
 }
 
 func (m Model) Compute(eventIndex int) (ModelResult, error) {
@@ -31,13 +36,16 @@ func (m Model) Compute(eventIndex int) (ModelResult, error) {
 	result.EventNumber = int(math.Floor(eventNumber))
 	result.RealizationNumber = int(realizationNumber)
 	//compute seeds
-	outputSeeds := make(map[string]int)
+	outputSeeds := make([]PluginSeed, len(m.Seeds))
 	rng := rand.New(rand.NewSource(int64(eventIndex)))
-	for s, seed := range m.Seeds {
+	for idx, ps := range m.Seeds {
 		modelSeed := m.InitialSeed
-		modelSeed += seed
+		modelSeed += ps.Seed
 		modelSeed += rng.Int()
-		outputSeeds[s] = modelSeed
+		outputSeeds[idx] = PluginSeed{
+			Plugin: ps.Plugin,
+			Seed:   modelSeed,
+		}
 	}
 	result.Seeds = outputSeeds
 	//sample time window start date

@@ -37,9 +37,17 @@ func main() {
 		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
 		return
 	}
-	if len(payload.Outputs) != 1 {
-		logError(errors.New("more than one output was defined"), payload)
+	err = computePayload(payload)
+	if err != nil {
+		logError(err, payload)
 		return
+	}
+}
+func computePayload(payload plugin.ModelPayload) error {
+	if len(payload.Outputs) != 1 {
+		err := errors.New("more than one output was defined")
+		logError(err, payload)
+		return err
 	}
 	var modelResourceInfo plugin.ResourceInfo
 	found := false
@@ -50,34 +58,35 @@ func main() {
 		}
 	}
 	if !found {
-		logError(fmt.Errorf("could not find %s.json", payload.Model.Name), payload)
-		return
+		err := fmt.Errorf("could not find %s.json", payload.Model.Name)
+		logError(err, payload)
+		return err
 	}
 	modelBytes, err := plugin.DownloadObject(modelResourceInfo)
 	if err != nil {
 		logError(err, payload)
-		return
+		return err
 	}
 	var eventGeneratorModel eventgenerator.Model
 	err = json.Unmarshal(modelBytes, &eventGeneratorModel)
 	if err != nil {
 		logError(err, payload)
-		return
+		return err
 	}
 	modelResult, err := eventGeneratorModel.Compute(payload.EventIndex)
 	if err != nil {
 		logError(err, payload)
-		return
+		return err
 	}
 	bytes, err := json.Marshal(modelResult)
 	if err != nil {
 		logError(err, payload)
-		return
+		return err
 	}
 	err = plugin.UpLoadFile(payload.Outputs[0].ResourceInfo, bytes)
 	if err != nil {
 		logError(err, payload)
-		return
+		return err
 	}
 	plugin.Log(plugin.Message{
 		Status:    plugin.SUCCEEDED,
@@ -87,6 +96,7 @@ func main() {
 		Sender:    "eventgenerator",
 		PayloadId: payload.Id,
 	})
+	return nil
 }
 func logError(err error, payload plugin.ModelPayload) {
 	plugin.Log(plugin.Message{

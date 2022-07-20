@@ -1,0 +1,1 @@
+{"initial_seed":1234,"events_per_realization":10,"model_seeds":[{"plugin":"pluginA","seed":234},{"plugin":"pluginB","seed":345},{"plugin":"pluginC","seed":456}],"timewindow_duration":100,"timewindow_start_distribution":{"type":"TriangularDistribution","parameters":{"min":0,"mostlikely":150,"max":365}}}
