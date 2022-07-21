@@ -4,26 +4,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
 	"testing"
+
+	"github.com/usace/wat-go-sdk/plugin"
 
 	"github.com/henrygeorgist/eventgenerator/eventgenerator"
 )
 
 func TestWriteModel(t *testing.T) {
 	path := "../exampledata/eg.json"
-	seeds := make([]eventgenerator.PluginSeeds, 3)
-	seeds[0] = eventgenerator.PluginSeeds{
-		Plugin:          "pluginA",
+	seeds := make([]plugin.SeedSet, 3)
+	seeds[0] = plugin.SeedSet{
+		Identifier:      "pluginA",
 		EventSeed:       234,
 		RealizationSeed: 987,
 	}
-	seeds[1] = eventgenerator.PluginSeeds{
-		Plugin:          "pluginB",
+	seeds[1] = plugin.SeedSet{
+		Identifier:      "pluginB",
 		EventSeed:       345,
 		RealizationSeed: 876,
 	}
-	seeds[2] = eventgenerator.PluginSeeds{
-		Plugin:          "pluginC",
+	seeds[2] = plugin.SeedSet{
+		Identifier:      "pluginC",
 		EventSeed:       456,
 		RealizationSeed: 765,
 	}
