@@ -3,56 +3,49 @@ package eventgenerator
 import (
 	"math"
 	"math/rand"
-	"time"
-
-	"github.com/HydrologicEngineeringCenter/go-statistics/statistics"
 )
 
-type PluginSeed struct {
-	Plugin string `json:"plugin"`
-	Seed   int    `json:"seed"`
+type PluginSeeds struct {
+	Plugin          string `json:"plugin"`
+	EventSeed       int64  `json:"event_seed"`
+	RealizationSeed int64  `json:"realization_seed"`
 }
 type Model struct {
-	InitialSeed                 int                                        `json:"initial_seed"`
-	EventsPerRealization        int                                        `json:"events_per_realization"`
-	Seeds                       []PluginSeed                               `json:"model_seeds"` //model or plugin name and string
-	TimeWindowDurationInHours   int                                        `json:"timewindow_duration"`
-	TimeWindowStartDistribution statistics.ContinuousDistributionContainer `json:"timewindow_start_distribution"`
+	InitialEventSeed       int64         `json:"initial_event_seed"`
+	InitialRealizationSeed int64         `json:"initial_realization_seed"`
+	EventsPerRealization   int           `json:"events_per_realization"`
+	Seeds                  []PluginSeeds `json:"model_seeds"` //model or plugin name and string
 }
 
-type ModelResult struct {
-	EventNumber       int          `json:"event_number"`
-	RealizationNumber int          `json:"realization_number"`
-	Seeds             []PluginSeed `json:"model_seeds"` //model or plugin name and string
-	TimeWindowStart   time.Time    `json:"timewindow_start"`
-	TimeWindowEnd     time.Time    `json:"timewindow_end"`
+type EventConfiguration struct {
+	EventNumber       int           `json:"event_number"`
+	RealizationNumber int           `json:"realization_number"`
+	Seeds             []PluginSeeds `json:"model_seeds"` //model or plugin name and string
 }
 
-func (m Model) Compute(eventIndex int) (ModelResult, error) {
-	result := ModelResult{}
+func (m Model) Compute(eventIndex int) (EventConfiguration, error) {
+	result := EventConfiguration{}
 	eventNumber := math.Mod(float64(eventIndex), float64(m.EventsPerRealization))
 	realizationNumber := math.Floor(float64(eventIndex) / float64(m.EventsPerRealization))
 	//set event number and realization number
 	result.EventNumber = int(math.Floor(eventNumber))
 	result.RealizationNumber = int(realizationNumber)
 	//compute seeds
-	outputSeeds := make([]PluginSeed, len(m.Seeds))
+	outputSeeds := make([]PluginSeeds, len(m.Seeds))
 	rng := rand.New(rand.NewSource(int64(eventIndex)))
+	realrng := rand.New(rand.NewSource(int64(result.RealizationNumber) + m.InitialRealizationSeed))
 	for idx, ps := range m.Seeds {
-		modelSeed := m.InitialSeed
-		modelSeed += ps.Seed
-		modelSeed += rng.Int()
-		outputSeeds[idx] = PluginSeed{
-			Plugin: ps.Plugin,
-			Seed:   modelSeed,
+		realseed := realrng.Int63()
+		realseed += ps.RealizationSeed
+		eventSeed := m.InitialEventSeed
+		eventSeed += ps.EventSeed
+		eventSeed += rng.Int63()
+		outputSeeds[idx] = PluginSeeds{
+			Plugin:          ps.Plugin,
+			EventSeed:       eventSeed,
+			RealizationSeed: realseed,
 		}
 	}
 	result.Seeds = outputSeeds
-	//sample time window start date
-	dayOfYear := int(m.TimeWindowStartDistribution.Value.InvCDF(rng.Float64()))
-	result.TimeWindowStart = time.Date(1984, time.January, dayOfYear, 0, 0, 0, 0, time.Local)
-	days := m.TimeWindowDurationInHours / 24
-	hours := m.TimeWindowDurationInHours - (days * 24)
-	result.TimeWindowEnd = time.Date(1984, time.January, dayOfYear+days, hours, 0, 0, 0, time.Local)
 	return result, nil
 }

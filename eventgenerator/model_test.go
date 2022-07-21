@@ -4,37 +4,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"reflect"
 	"testing"
 
-	"github.com/HydrologicEngineeringCenter/go-statistics/statistics"
 	"github.com/henrygeorgist/eventgenerator/eventgenerator"
 )
 
 func TestWriteModel(t *testing.T) {
 	path := "../exampledata/eg.json"
-	seeds := make([]eventgenerator.PluginSeed, 3)
-	seeds[0] = eventgenerator.PluginSeed{
-		Plugin: "pluginA",
-		Seed:   234,
+	seeds := make([]eventgenerator.PluginSeeds, 3)
+	seeds[0] = eventgenerator.PluginSeeds{
+		Plugin:          "pluginA",
+		EventSeed:       234,
+		RealizationSeed: 987,
 	}
-	seeds[1] = eventgenerator.PluginSeed{
-		Plugin: "pluginB",
-		Seed:   345,
+	seeds[1] = eventgenerator.PluginSeeds{
+		Plugin:          "pluginB",
+		EventSeed:       345,
+		RealizationSeed: 876,
 	}
-	seeds[2] = eventgenerator.PluginSeed{
-		Plugin: "pluginC",
-		Seed:   456,
+	seeds[2] = eventgenerator.PluginSeeds{
+		Plugin:          "pluginC",
+		EventSeed:       456,
+		RealizationSeed: 765,
 	}
-	container := statistics.ContinuousDistributionContainer{}
-	container.Type = reflect.TypeOf(statistics.TriangularDistribution{}).Name()
-	container.Value = statistics.TriangularDistribution{Min: 0, MostLikely: 150, Max: 365}
 	model := eventgenerator.Model{
-		InitialSeed:                 1234,
-		EventsPerRealization:        10,
-		Seeds:                       seeds,
-		TimeWindowDurationInHours:   100,
-		TimeWindowStartDistribution: container,
+		InitialEventSeed:       1234,
+		InitialRealizationSeed: 9876,
+		EventsPerRealization:   10,
+		Seeds:                  seeds,
 	}
 	b, err := json.Marshal(model)
 	if err != nil {
@@ -57,8 +54,6 @@ func TestReadModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	val := m.TimeWindowStartDistribution.Value.InvCDF(.25)
-	fmt.Printf("value sampled was %v", val)
 }
 func TestComputeModel(t *testing.T) {
 	path := "../exampledata/eg.json"
@@ -94,6 +89,21 @@ func TestComputeModel(t *testing.T) {
 	fmt.Println(r.EventNumber)
 	fmt.Println(r.RealizationNumber)
 	outputPath = "../exampledata/result12.json"
+	rb, err = json.Marshal(r)
+	if err != nil {
+		t.Fail()
+	}
+	err = os.WriteFile(outputPath, rb, 0600)
+	if err != nil {
+		t.Fail()
+	}
+	r, err = m.Compute(14)
+	if err != nil {
+		t.Fail()
+	}
+	fmt.Println(r.EventNumber)
+	fmt.Println(r.RealizationNumber)
+	outputPath = "../exampledata/result14.json"
 	rb, err = json.Marshal(r)
 	if err != nil {
 		t.Fail()
