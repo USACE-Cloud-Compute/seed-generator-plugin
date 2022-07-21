@@ -9,7 +9,7 @@ import (
 
 	"github.com/usace/wat-go-sdk/plugin"
 
-	"github.com/henrygeorgist/eventgenerator/eventgenerator"
+	"github.com/usace/event-generator/eventgenerator"
 )
 
 func TestWriteModel(t *testing.T) {

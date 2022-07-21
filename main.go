@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/henrygeorgist/eventgenerator/eventgenerator"
+	"github.com/usace/event-generator/eventgenerator"
 	"github.com/usace/wat-go-sdk/plugin"
 )
 
