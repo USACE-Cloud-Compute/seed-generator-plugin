@@ -46,6 +46,8 @@ github.com/usace/wat-go-sdk v0.0.0-20220721151408-5d46fa51aea3 h1:HQTAHG95O1yDZZ
 github.com/usace/wat-go-sdk v0.0.0-20220721151408-5d46fa51aea3/go.mod h1:7Tj4KtLkO3fP2VKtGLIcZ2+vTEat70d/xOa3d4HT7yw=
 github.com/usace/wat-go-sdk v0.0.0-20220722130139-7c76b80a3c61 h1:UTy8+0FeE7MqGnDvG1jeDuCp+bCx/JrJ6zn6vqZbL8c=
 github.com/usace/wat-go-sdk v0.0.0-20220722130139-7c76b80a3c61/go.mod h1:7Tj4KtLkO3fP2VKtGLIcZ2+vTEat70d/xOa3d4HT7yw=
+github.com/usace/wat-go-sdk v0.0.0-20220722133636-83d10ca686fb h1:M6RdHrdZCR7qAjN6WGSs0KRXr6IuYQsbBXeWST3D4t0=
+github.com/usace/wat-go-sdk v0.0.0-20220722133636-83d10ca686fb/go.mod h1:7Tj4KtLkO3fP2VKtGLIcZ2+vTEat70d/xOa3d4HT7yw=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

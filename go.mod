@@ -3,7 +3,7 @@ module github.com/usace/event-generator
 go 1.18
 
 require (
-	github.com/usace/wat-go-sdk v0.0.0-20220722130139-7c76b80a3c61
+	github.com/usace/wat-go-sdk v0.0.0-20220722133636-83d10ca686fb
 	gopkg.in/yaml.v3 v3.0.1
 )
 

@@ -31,6 +31,17 @@ func TestComputePayload(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
+	err = plugin.InitConfigFromEnv()
+	if err != nil {
+		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
+		return
+	}
+	mp, err = plugin.LoadPayload(path)
+	if err != nil {
+		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
+		return
+	}
+
 	err = computePayload(mp)
 	if err != nil {
 		t.Fail()
