@@ -15,10 +15,7 @@ RUN go mod tidy
 RUN go build main.go
 ENTRYPOINT /go/bin/CompileDaemon --build="go build main.go"
 
-# TODO: add prod build
-# FROM osgeo/gdal:alpine-normal-3.2.1 as prod
-# Production container
-#FROM golang:1.18-alpine3.14 AS prod
-#WORKDIR /app
-#COPY --from=dev /app/main .
-#CMD [ "./main" ]
+FROM golang:1.18-alpine3.14 AS prod
+WORKDIR /app
+COPY --from=dev /app/main .
+CMD [ "./main" ]
