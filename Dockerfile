@@ -1,4 +1,4 @@
-FROM golang:1.18.2-alpine3.15 AS dev
+FROM golang:1.19-alpine3.16 AS dev
 
 RUN apk add --no-cache \
     build-base \
@@ -15,7 +15,7 @@ RUN go mod tidy
 RUN go build main.go
 ENTRYPOINT /go/bin/CompileDaemon --build="go build main.go"
 
-FROM golang:1.18-alpine3.14 AS prod
+FROM alpine:3.16 AS prod
 WORKDIR /app
 COPY --from=dev /app/main .
 CMD [ "./main" ]
