@@ -16,7 +16,7 @@ func TestWriteModel(t *testing.T) {
 	path := "../exampledata/eg.json"
 	seeds := make([]plugin.SeedSet, 3)
 	seeds[0] = plugin.SeedSet{
-		Identifier:      "pluginA",
+		Identifier:      "fc",
 		EventSeed:       234,
 		RealizationSeed: 987,
 	}
