@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/usace/event-generator/eventgenerator"
-	"github.com/usace/wat-go-sdk/plugin"
+	"github.com/usace/wat-go"
 )
 
 func main() {
@@ -17,24 +17,30 @@ func main() {
 	flag.StringVar(&payloadPath, "payload", "pathtopayload.yml", "please specify an input file using `-payload pathtopayload.yml`")
 	flag.Parse()
 	if payloadPath == "" {
-		plugin.Log(plugin.Message{
+		fmt.Println("given a blank path...\n\tplease specify an input file using `-payload pathtopayload.yml`")
+		/*plugin.Log(plugin.Message{
 			Status:    plugin.FAILED,
 			Progress:  0,
 			Level:     plugin.ERROR,
-			Message:   "given a blank path...\n\tplease specify an input file using `-payload pathtopayload.yml`",
+			Message:   ,
 			Sender:    "eventgenerator",
 			PayloadId: "unknown payloadid because the plugin package could not be properly initalized",
-		})
+		})*/
 		return
 	}
-	err := plugin.InitConfigFromEnv()
+	/*err := plugin.InitConfigFromEnv()
 	if err != nil {
 		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
 		return
-	}
-	payload, err := plugin.LoadPayload(payloadPath)
+	}*/
+	s3ws, err := wat.NewS3WatStore()
 	if err != nil {
-		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
+		logError(err)
+		return
+	}
+	payload, err := s3ws.GetPayload(payloadPath)//@TODO @RANDY where do I get the Manifest ID at a plugin? I theoretically have the payload path not the manifest id.
+	if err != nil {
+		logError(err)
 		return
 	}
 	err = computePayload(payload)
@@ -99,12 +105,13 @@ func computePayload(payload plugin.ModelPayload) error {
 	return nil
 }
 func logError(err error, payload plugin.ModelPayload) {
-	plugin.Log(plugin.Message{
+	fmt.Println(err.Error())
+	/*plugin.Log(plugin.Message{
 		Status:    plugin.FAILED,
 		Progress:  0,
 		Level:     plugin.ERROR,
 		Message:   err.Error(),
 		Sender:    "eventgenerator",
 		PayloadId: payload.Id,
-	})
+	})*/
 }
