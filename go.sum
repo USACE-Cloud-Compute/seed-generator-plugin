@@ -42,6 +42,10 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
+github.com/usace/filestore v0.0.0-20220311141535-9ec1e86b5058 h1:H5z9z8TXJqRtiAKficjEu/dyf0KONfMFBIJ8cYzhucY=
+github.com/usace/filestore v0.0.0-20220311141535-9ec1e86b5058/go.mod h1:Q3fxW3tMg1HCVmThpy5EZ1dsETlTDkskQzVgBiPYI1Y=
+github.com/usace/wat-go v0.0.0-20230103143754-e7273b8fb323 h1:plugNWVM59afUAwHTCBj+fCemE/E8FDC7GtBelkXH4s=
+github.com/usace/wat-go v0.0.0-20230103143754-e7273b8fb323/go.mod h1:0kivPzUBo45HzjBbE3hpWKFtWl/TLaN8C+4dCEDhzCE=
 github.com/usace/wat-go-sdk v0.0.0-20220721151408-5d46fa51aea3 h1:HQTAHG95O1yDZZm6MYtXPXH2vZeasApzqtCOjOnmSlc=
 github.com/usace/wat-go-sdk v0.0.0-20220721151408-5d46fa51aea3/go.mod h1:7Tj4KtLkO3fP2VKtGLIcZ2+vTEat70d/xOa3d4HT7yw=
 github.com/usace/wat-go-sdk v0.0.0-20220722130139-7c76b80a3c61 h1:UTy8+0FeE7MqGnDvG1jeDuCp+bCx/JrJ6zn6vqZbL8c=

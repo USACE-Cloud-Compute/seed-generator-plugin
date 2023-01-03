@@ -1,1 +1,1 @@
-# eventgenerator
+# seedgenerator
