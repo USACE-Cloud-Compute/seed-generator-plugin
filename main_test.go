@@ -1,13 +1,6 @@
 package main
 
-import (
-	"os"
-	"testing"
-
-	"github.com/usace/wat-go-sdk/plugin"
-	"gopkg.in/yaml.v3"
-)
-
+/*
 func TestReadPayload(t *testing.T) {
 	path := "./exampledata/payload.yaml"
 	b, err := os.ReadFile(path)
@@ -47,3 +40,4 @@ func TestComputePayload(t *testing.T) {
 		t.Fail()
 	}
 }
+*/

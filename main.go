@@ -3,108 +3,108 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"strings"
 
-	"github.com/usace/event-generator/eventgenerator"
-	"github.com/usace/wat-go-sdk/plugin"
+	"github.com/usace/event-generator/seedgenerator"
+	"github.com/usace/wat-go"
 )
 
 func main() {
 	fmt.Println("event generator!")
-	var payloadPath string
-	flag.StringVar(&payloadPath, "payload", "pathtopayload.yml", "please specify an input file using `-payload pathtopayload.yml`")
-	flag.Parse()
-	if payloadPath == "" {
-		plugin.Log(plugin.Message{
-			Status:    plugin.FAILED,
-			Progress:  0,
-			Level:     plugin.ERROR,
-			Message:   "given a blank path...\n\tplease specify an input file using `-payload pathtopayload.yml`",
-			Sender:    "eventgenerator",
-			PayloadId: "unknown payloadid because the plugin package could not be properly initalized",
+	pm, err := wat.InitPluginManager()
+	if err != nil {
+		pm.LogMessage(wat.Message{
+			Message: err.Error(),
+		})
+	}
+	payload, err := pm.GetPayload()
+	if err != nil {
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
 		})
 		return
 	}
-	err := plugin.InitConfigFromEnv()
+	err = computePayload(payload, pm)
 	if err != nil {
-		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
-		return
-	}
-	payload, err := plugin.LoadPayload(payloadPath)
-	if err != nil {
-		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
-		return
-	}
-	err = computePayload(payload)
-	if err != nil {
-		logError(err, payload)
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return
 	}
 }
-func computePayload(payload plugin.ModelPayload) error {
+func computePayload(payload wat.Payload, pm wat.PluginManager) error {
 	if len(payload.Outputs) != 1 {
 		err := errors.New("more than one output was defined")
-		logError(err, payload)
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return err
 	}
-	var modelResourceInfo plugin.ResourceInfo
+	var modelResourceInfo wat.DataSource
 	found := false
 	for _, rfd := range payload.Inputs {
-		if strings.Contains(rfd.FileName, payload.Model.Name+".json") {
-			modelResourceInfo = rfd.ResourceInfo
+		if strings.Contains(rfd.Name, "seedgenerator.json") {
+			modelResourceInfo = rfd
 			found = true
 		}
 	}
 	if !found {
-		err := fmt.Errorf("could not find %s.json", payload.Model.Name)
-		logError(err, payload)
+		err := fmt.Errorf("could not find %s.json", "seedgenerator")
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return err
 	}
-	modelBytes, err := plugin.DownloadObject(modelResourceInfo)
+	modelBytes, err := pm.GetObject(modelResourceInfo)
 	if err != nil {
-		logError(err, payload)
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return err
 	}
-	var eventGeneratorModel eventgenerator.Model
+	var eventGeneratorModel seedgenerator.Model
 	err = json.Unmarshal(modelBytes, &eventGeneratorModel)
 	if err != nil {
-		logError(err, payload)
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return err
 	}
-	modelResult, err := eventGeneratorModel.Compute(payload.EventIndex)
+	eventIndex := pm.EventNumber()
+	modelResult, err := eventGeneratorModel.Compute(eventIndex)
 	if err != nil {
-		logError(err, payload)
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return err
 	}
 	bytes, err := json.Marshal(modelResult)
 	if err != nil {
-		logError(err, payload)
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return err
 	}
-	err = plugin.UpLoadFile(payload.Outputs[0].ResourceInfo, bytes)
+	err = pm.PutObject(payload.Outputs[0], bytes)
 	if err != nil {
-		logError(err, payload)
+		pm.LogError(wat.Error{
+			ErrorLevel: wat.ERROR,
+			Error:      err.Error(),
+		})
 		return err
 	}
-	plugin.Log(plugin.Message{
-		Status:    plugin.SUCCEEDED,
-		Progress:  100,
-		Level:     plugin.INFO,
-		Message:   "event generation complete",
-		Sender:    "eventgenerator",
-		PayloadId: payload.Id,
+	pm.ReportProgress(wat.StatusReport{
+		Status:   wat.SUCCEEDED,
+		Progress: 100,
 	})
 	return nil
-}
-func logError(err error, payload plugin.ModelPayload) {
-	plugin.Log(plugin.Message{
-		Status:    plugin.FAILED,
-		Progress:  0,
-		Level:     plugin.ERROR,
-		Message:   err.Error(),
-		Sender:    "eventgenerator",
-		PayloadId: payload.Id,
-	})
 }
