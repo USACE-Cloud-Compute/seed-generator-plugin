@@ -1,4 +1,4 @@
-package main
+package seedgenerator
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/usace/event-generator/seedgenerator"
+	"github.com/usace/seed-generator/seedgeneratormodel"
 	"github.com/usace/wat-go"
 )
 
@@ -68,7 +68,7 @@ func computePayload(payload wat.Payload, pm wat.PluginManager) error {
 		})
 		return err
 	}
-	var eventGeneratorModel seedgenerator.Model
+	var eventGeneratorModel seedgeneratormodel.Model
 	err = json.Unmarshal(modelBytes, &eventGeneratorModel)
 	if err != nil {
 		pm.LogError(wat.Error{

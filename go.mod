@@ -1,4 +1,4 @@
-module github.com/usace/event-generator
+module github.com/usace/seed-generator
 
 go 1.18
 
