@@ -7,7 +7,7 @@ import (
 
 	"testing"
 
-	"github.com/usace/event-generator/seedgenerator"
+	"github.com/usace/seed-generator/seedgenerator"
 	"github.com/usace/wat-go/plugin"
 )
 
