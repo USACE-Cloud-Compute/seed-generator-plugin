@@ -1,5 +1,5 @@
 FROM golang:1.19-alpine3.16 AS builder
-RUN apk update && apk add --no-cache git
+RUN apk update && apk add --no-cache git && apk add --no-cache ca-certificates && update-ca-certificates
 WORKDIR /go/src/app
 COPY . .
 
@@ -9,5 +9,6 @@ RUN go get -d -v &&\
 
 # SCRATCH IMAGE
 FROM scratch
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/main /go/bin/seedgenerator
 ENTRYPOINT ["/go/bin/seedgenerator"]
