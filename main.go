@@ -6,39 +6,39 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/usace/cc-go-sdk"
 	"github.com/usace/seed-generator/seedgeneratormodel"
-	"github.com/usace/wat-go"
 )
 
 func main() {
 	fmt.Println("event generator!")
-	pm, err := wat.InitPluginManager()
+	pm, err := cc.InitPluginManager()
 	if err != nil {
 		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
 	}
 	payload := pm.GetPayload()
 	err = computePayload(payload, pm)
 	if err != nil {
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 	}
 }
 
-func computePayload(payload wat.Payload, pm *wat.PluginManager) error {
+func computePayload(payload cc.Payload, pm *cc.PluginManager) error {
 	if len(payload.Outputs) != 1 {
 		err := errors.New("more than one output was defined")
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 		return err
 	}
 	reader, err := pm.FileReaderByName("seedgenerator", 0)
 	if err != nil {
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 		return err
@@ -48,8 +48,8 @@ func computePayload(payload wat.Payload, pm *wat.PluginManager) error {
 	var eventGeneratorModel seedgeneratormodel.Model
 	err = json.NewDecoder(reader).Decode(&eventGeneratorModel)
 	if err != nil {
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 		return err
@@ -58,8 +58,8 @@ func computePayload(payload wat.Payload, pm *wat.PluginManager) error {
 	eventIndex := pm.EventNumber()
 	modelResult, err := eventGeneratorModel.Compute(eventIndex)
 	if err != nil {
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 		return err
@@ -67,8 +67,8 @@ func computePayload(payload wat.Payload, pm *wat.PluginManager) error {
 
 	bytes, err := json.Marshal(modelResult)
 	if err != nil {
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 		return err
@@ -76,8 +76,8 @@ func computePayload(payload wat.Payload, pm *wat.PluginManager) error {
 
 	outds, err := pm.GetOutputDataSource("seedoutput")
 	if err != nil {
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 		return err
@@ -85,14 +85,14 @@ func computePayload(payload wat.Payload, pm *wat.PluginManager) error {
 
 	err = pm.PutFile(bytes, outds, 0)
 	if err != nil {
-		pm.LogError(wat.Error{
-			ErrorLevel: wat.ERROR,
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
 		return err
 	}
-	pm.ReportProgress(wat.StatusReport{
-		Status:   wat.SUCCEEDED,
+	pm.ReportProgress(cc.StatusReport{
+		Status:   cc.SUCCEEDED,
 		Progress: 100,
 	})
 	return nil
