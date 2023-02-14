@@ -9,7 +9,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-require github.com/usace/cc-go-sdk v0.0.0-20230208195614-62426112a114
+require github.com/usace/cc-go-sdk v0.0.0-20230210172949-b3a98bc3efaa
 
 require (
 	github.com/aws/aws-sdk-go v1.44.189 // indirect
