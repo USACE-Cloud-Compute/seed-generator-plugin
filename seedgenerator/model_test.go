@@ -7,8 +7,8 @@ import (
 
 	"testing"
 
-	"github.com/usace/event-generator/seedgenerator"
-	"github.com/usace/wat-go/plugin"
+	"github.com/usace/cc-go-sdk/plugin"
+	"github.com/usace/seed-generator/seedgenerator"
 )
 
 func TestWriteModel(t *testing.T) {

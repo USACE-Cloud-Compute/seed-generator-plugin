@@ -1,4 +1,4 @@
-package seedgenerator_test
+package main_test
 
 /*
 func TestReadPayload(t *testing.T) {

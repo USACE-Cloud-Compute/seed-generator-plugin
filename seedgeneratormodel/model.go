@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/usace/wat-go/plugin"
+	"github.com/usace/cc-go-sdk/plugin"
 )
 
 type Model struct {
