@@ -74,7 +74,7 @@ func computePayload(payload cc.Payload, pm *cc.PluginManager) error {
 		return err
 	}
 
-	outds, err := pm.GetOutputDataSource("seedoutput")
+	outds, err := pm.GetOutputDataSource("seeds")
 	if err != nil {
 		pm.LogError(cc.Error{
 			ErrorLevel: cc.ERROR,
