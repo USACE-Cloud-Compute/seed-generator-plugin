@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("event generator!")
+	fmt.Println("seed generator!")
 	pm, err := cc.InitPluginManager()
 	if err != nil {
 		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
