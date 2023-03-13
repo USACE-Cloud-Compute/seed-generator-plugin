@@ -21,17 +21,16 @@ func (m Model) Compute(eventIndex int) (plugin.EventConfiguration, error) {
 	result.RealizationNumber = int(realizationNumber)
 	//compute seeds
 	outputSeeds := make(map[string]plugin.SeedSet)
-	rng := rand.New(rand.NewSource(int64(eventIndex)))
-	realrng := rand.New(rand.NewSource(int64(result.RealizationNumber) + m.InitialRealizationSeed))
+	eventrng := rand.New(rand.NewSource(int64(eventIndex) + m.InitialEventSeed))                    //unique to each event (though offset by 1, which is risky.)
+	realrng := rand.New(rand.NewSource(int64(result.RealizationNumber) + m.InitialRealizationSeed)) //unique to each realization and consistent through many events (though offset by 1 which is risky)
+	realSeed := realrng.Int63()                                                                     //do not sample random numbers in a range over a map, order matters in an RNG sampling.
+	eventSeed := eventrng.Int63()                                                                   //do not sample random numbers in a range over a map, order matters in an RNG sampling.
 	for pluginName, ps := range m.PluginInitialSeeds {
-		realseed := realrng.Int63()
-		realseed += ps.RealizationSeed
-		eventSeed := m.InitialEventSeed
-		eventSeed += ps.EventSeed
-		eventSeed += rng.Int63()
+		realSeed += ps.RealizationSeed //unique to each plugin
+		eventSeed += ps.EventSeed      // unique to each plugin
 		outputSeeds[pluginName] = plugin.SeedSet{
 			EventSeed:       eventSeed,
-			RealizationSeed: realseed,
+			RealizationSeed: realSeed,
 		}
 	}
 	result.Seeds = outputSeeds

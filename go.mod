@@ -5,11 +5,11 @@ go 1.18
 //replace github.com/usace/cc-go-sdk => /Users/rdcrlrsg/Projects/programming/hec/cc-go-sdk
 
 require (
-	github.com/usace/filestore v0.0.0-20230130152432-edce4c2aa925 // indirect
+	github.com/usace/filestore v0.0.0-20230309205740-49d6e1f06e4a // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-require github.com/usace/cc-go-sdk v0.0.0-20230210172949-b3a98bc3efaa
+require github.com/usace/cc-go-sdk v0.0.0-20230312015913-bffd1ac1193c
 
 require (
 	github.com/aws/aws-sdk-go v1.44.189 // indirect
