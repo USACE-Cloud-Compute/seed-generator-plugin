@@ -26,11 +26,9 @@ func (m Model) Compute(eventIndex int) (plugin.EventConfiguration, error) {
 	realSeed := realrng.Int63()                                                                     //do not sample random numbers in a range over a map, order matters in an RNG sampling.
 	eventSeed := eventrng.Int63()                                                                   //do not sample random numbers in a range over a map, order matters in an RNG sampling.
 	for pluginName, ps := range m.PluginInitialSeeds {
-		realSeed += ps.RealizationSeed //unique to each plugin
-		eventSeed += ps.EventSeed      // unique to each plugin
 		outputSeeds[pluginName] = plugin.SeedSet{
-			EventSeed:       eventSeed,
-			RealizationSeed: realSeed,
+			EventSeed:       eventSeed + ps.EventSeed,      //unique to each plugin
+			RealizationSeed: realSeed + ps.RealizationSeed, // unique to each plugin
 		}
 	}
 	result.Seeds = outputSeeds
