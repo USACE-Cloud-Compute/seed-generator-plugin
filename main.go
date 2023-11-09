@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/usace/cc-go-sdk"
+	"github.com/usace/seed-generator/blockgeneratormodel"
 	"github.com/usace/seed-generator/seedgeneratormodel"
 )
 
@@ -17,16 +18,66 @@ func main() {
 		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
 	}
 	payload := pm.GetPayload()
-	err = computePayload(payload, pm)
+	err = computePayloadActions(payload)
 	if err != nil {
 		pm.LogError(cc.Error{
 			ErrorLevel: cc.ERROR,
 			Error:      err.Error(),
 		})
+		return
 	}
+	pm.ReportProgress(cc.StatusReport{
+		Status:   cc.SUCCEEDED,
+		Progress: 100,
+	})
 }
 
-func computePayload(payload cc.Payload, pm *cc.PluginManager) error {
+func computePayloadActions(payload cc.Payload) error {
+	for _, action := range payload.Actions {
+		switch action.Name {
+		case "block_generation":
+			generateBlocks(action)
+		case "seed_generation":
+			generateSeeds(payload)
+		default:
+			log.Fatalf("%s.\n", action.Name)
+		}
+	}
+
+	return nil
+}
+
+func generateBlocks(action cc.Action) {
+	//initialize a blockgeneratormodel
+	blockGenerator := blockgeneratormodel.BlockGenerator{
+		TargetTotalEvents:    action.Parameters.GetInt64OrFail("target_total_events"),
+		TargetEventsPerBlock: action.Parameters.GetIntOrFail("target_events_per_block"),
+		Seed:                 action.Parameters.GetInt64OrDefault("seed", 1234),
+	}
+	blocks := blockGenerator.GenerateBlocks()
+	bytes, err := json.Marshal(blocks)
+	if err != nil {
+		log.Fatal("could not encode blocks")
+	}
+	outputDataset_name := action.Parameters.GetStringOrFail("outputdataset_name")
+	pm, err := cc.InitPluginManager()
+	if err != nil {
+		log.Fatal("could not init plugin manager")
+	}
+	outputDataset, err := pm.GetOutputDataSource(outputDataset_name)
+	if err != nil {
+		log.Fatal("could not find datasource")
+	}
+	err = pm.PutFile(bytes, outputDataset, 0)
+	if err != nil {
+		log.Fatal("could not write file")
+	}
+}
+func generateSeeds(payload cc.Payload) error {
+	pm, err := cc.InitPluginManager()
+	if err != nil {
+		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
+	}
 	if len(payload.Outputs) != 1 {
 		err := errors.New("more than one output was defined")
 		pm.LogError(cc.Error{
@@ -91,9 +142,5 @@ func computePayload(payload cc.Payload, pm *cc.PluginManager) error {
 		})
 		return err
 	}
-	pm.ReportProgress(cc.StatusReport{
-		Status:   cc.SUCCEEDED,
-		Progress: 100,
-	})
 	return nil
 }

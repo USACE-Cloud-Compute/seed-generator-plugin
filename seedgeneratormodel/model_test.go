@@ -3,7 +3,7 @@ package seedgeneratormodel_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io/ioutil"
 
 	"testing"
 
@@ -36,7 +36,7 @@ func TestWriteModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	err = os.WriteFile(path, b, 0600)
+	err = ioutil.WriteFile(path, b, 0600)
 	if err != nil {
 		t.Fail()
 	}
@@ -44,7 +44,7 @@ func TestWriteModel(t *testing.T) {
 func TestReadModel(t *testing.T) {
 	path := "../exampledata/eg.json"
 
-	b, err := os.ReadFile(path)
+	b, err := ioutil.ReadFile(path) //ReadFile(path)
 	if err != nil {
 		t.Fail()
 	}
@@ -57,7 +57,7 @@ func TestReadModel(t *testing.T) {
 func TestComputeModel(t *testing.T) {
 	path := "../exampledata/eg.json"
 
-	b, err := os.ReadFile(path)
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		t.Fail()
 	}
@@ -76,7 +76,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	err = os.WriteFile(outputPath, rb, 0600)
+	err = ioutil.WriteFile(outputPath, rb, 0600)
 	if err != nil {
 		t.Fail()
 	}
@@ -90,7 +90,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	err = os.WriteFile(outputPath, rb, 0600)
+	err = ioutil.WriteFile(outputPath, rb, 0600)
 	if err != nil {
 		t.Fail()
 	}
@@ -104,7 +104,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	err = os.WriteFile(outputPath, rb, 0600)
+	err = ioutil.WriteFile(outputPath, rb, 0600)
 	if err != nil {
 		t.Fail()
 	}
@@ -118,7 +118,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	err = os.WriteFile(outputPath, rb, 0600)
+	err = ioutil.WriteFile(outputPath, rb, 0600)
 	if err != nil {
 		t.Fail()
 	}
