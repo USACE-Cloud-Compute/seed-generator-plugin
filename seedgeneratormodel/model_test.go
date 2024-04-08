@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 
 	"testing"
 
@@ -122,4 +123,12 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
+}
+func Test_GenerateSeedList(t *testing.T) {
+	seed := rand.Int63()
+	r := rand.New(rand.NewSource(seed))
+	for i := 0; i < 100; i++ {
+		fmt.Printf("%v,%v\n", i, r.Int63())
+	}
+
 }
