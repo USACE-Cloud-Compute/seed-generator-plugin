@@ -11,7 +11,7 @@ import (
 	"github.com/usace/seed-generator/seedgeneratormodel"
 )
 
-func TestWriteModel(t *testing.T) {
+func TestWriteRealizationModel(t *testing.T) {
 	path := "../exampledata/eg.json"
 	seeds := make(map[string]plugin.SeedSet)
 	seeds["fc"] = plugin.SeedSet{
@@ -26,7 +26,7 @@ func TestWriteModel(t *testing.T) {
 		EventSeed:       456,
 		RealizationSeed: 765,
 	}
-	model := seedgeneratormodel.Model{
+	model := seedgeneratormodel.RealizationModel{
 		InitialEventSeed:       1234,
 		InitialRealizationSeed: 9876,
 		EventsPerRealization:   10,
@@ -41,14 +41,14 @@ func TestWriteModel(t *testing.T) {
 		t.Fail()
 	}
 }
-func TestReadModel(t *testing.T) {
+func TestReadRealizationModel(t *testing.T) {
 	path := "../exampledata/eg.json"
 
 	b, err := ioutil.ReadFile(path) //ReadFile(path)
 	if err != nil {
 		t.Fail()
 	}
-	m := seedgeneratormodel.Model{}
+	m := seedgeneratormodel.RealizationModel{}
 	err = json.Unmarshal(b, &m)
 	if err != nil {
 		t.Fail()
@@ -61,7 +61,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	m := seedgeneratormodel.Model{}
+	m := seedgeneratormodel.RealizationModel{}
 	err = json.Unmarshal(b, &m)
 	if err != nil {
 		t.Fail()

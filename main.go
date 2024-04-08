@@ -37,8 +37,10 @@ func computePayloadActions(payload cc.Payload) error {
 		switch action.Name {
 		case "block_generation":
 			generateBlocks(action)
-		case "seed_generation":
+		case "realization_seed_generation":
 			generateSeeds(payload)
+		case "block_seed_generation":
+			generateSeedsFromBlocks(payload)
 		default:
 			log.Fatalf("%s.\n", action.Name)
 		}
@@ -73,6 +75,95 @@ func generateBlocks(action cc.Action) {
 		log.Fatal("could not write file")
 	}
 }
+func generateSeedsFromBlocks(payload cc.Payload) error {
+	pm, err := cc.InitPluginManager()
+	if err != nil {
+		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
+	}
+	if len(payload.Outputs) != 1 {
+		err := errors.New("more than one output was defined")
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+	reader, err := pm.FileReaderByName("seedgeneratorconfig", 0)
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+	defer reader.Close()
+
+	var eventGeneratorModel seedgeneratormodel.BlockModel
+	err = json.NewDecoder(reader).Decode(&eventGeneratorModel)
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+	blockreader, err := pm.FileReaderByName("blockfile", 0)
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+	defer blockreader.Close()
+	var blocks []blockgeneratormodel.Block
+	err = json.NewDecoder(reader).Decode(&blocks)
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+	eventIndex := pm.EventNumber()
+	modelResult, err := eventGeneratorModel.Compute(eventIndex, blocks)
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+
+	bytes, err := json.Marshal(modelResult)
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+
+	outds, err := pm.GetOutputDataSource("seeds")
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+
+	err = pm.PutFile(bytes, outds, 0)
+	if err != nil {
+		pm.LogError(cc.Error{
+			ErrorLevel: cc.ERROR,
+			Error:      err.Error(),
+		})
+		return err
+	}
+	return nil
+}
+
 func generateSeeds(payload cc.Payload) error {
 	pm, err := cc.InitPluginManager()
 	if err != nil {
@@ -96,7 +187,7 @@ func generateSeeds(payload cc.Payload) error {
 	}
 	defer reader.Close()
 
-	var eventGeneratorModel seedgeneratormodel.Model
+	var eventGeneratorModel seedgeneratormodel.RealizationModel
 	err = json.NewDecoder(reader).Decode(&eventGeneratorModel)
 	if err != nil {
 		pm.LogError(cc.Error{
