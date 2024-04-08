@@ -53,6 +53,7 @@ func generateBlocks(action cc.Action) {
 	//initialize a blockgeneratormodel
 	blockGenerator := blockgeneratormodel.BlockGenerator{
 		TargetTotalEvents:    action.Parameters.GetInt64OrFail("target_total_events"),
+		BlocksPerRealization: action.Parameters.GetIntOrFail("blocks_per_realization"),
 		TargetEventsPerBlock: action.Parameters.GetIntOrFail("target_events_per_block"),
 		Seed:                 action.Parameters.GetInt64OrDefault("seed", 1234),
 	}
