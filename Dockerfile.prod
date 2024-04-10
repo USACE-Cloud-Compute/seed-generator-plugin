@@ -9,8 +9,8 @@ ENV GOPATH=/go
 ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
 WORKDIR /app
-RUN git clone https://github.com/USACE/event-generator.git
-WORKDIR /app/event-generator
+RUN git clone https://github.com/USACE/seed-generator.git
+WORKDIR /app/seed-generator
 RUN go mod download
 RUN go mod tidy
 RUN go build -o seed-generator
@@ -19,4 +19,4 @@ RUN go build -o seed-generator
 FROM alpine:3.16 AS prod
 
 WORKDIR /app
-COPY --from=builder /app/event-generator/seed-generator .
+COPY --from=builder /app/seed-generator/seed-generator .
