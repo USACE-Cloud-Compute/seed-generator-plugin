@@ -73,7 +73,7 @@ func generateBlocks(action cc.Action) {
 	}
 	err = pm.PutFile(bytes, outputDataset, 0)
 	if err != nil {
-		log.Fatal("could not write file")
+		log.Fatal(fmt.Sprintf("could not write file error: %v", err))
 	}
 }
 func generateSeedsFromBlocks(payload cc.Payload) error {
