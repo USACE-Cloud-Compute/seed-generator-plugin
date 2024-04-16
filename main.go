@@ -118,7 +118,7 @@ func generateSeedsFromBlocks(payload cc.Payload) error {
 	}
 	defer blockreader.Close()
 	var blocks []blockgeneratormodel.Block
-	err = json.NewDecoder(reader).Decode(&blocks)
+	err = json.NewDecoder(blockreader).Decode(&blocks)
 	if err != nil {
 		pm.LogError(cc.Error{
 			ErrorLevel: cc.ERROR,
