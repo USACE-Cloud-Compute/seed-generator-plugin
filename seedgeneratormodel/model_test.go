@@ -1,37 +1,27 @@
-package seedgeneratormodel_test
+package seedgeneratormodel
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"time"
 
 	"testing"
-
-	"github.com/usace/cc-go-sdk/plugin"
-	"github.com/usace/seed-generator/seedgeneratormodel"
 )
 
 func TestWriteRealizationModel(t *testing.T) {
 	path := "../exampledata/eg.json"
-	seeds := make(map[string]plugin.SeedSet)
-	seeds["fc"] = plugin.SeedSet{
-		EventSeed:       234,
-		RealizationSeed: 987,
-	}
-	seeds["pluginB"] = plugin.SeedSet{
-		EventSeed:       345,
-		RealizationSeed: 876,
-	}
-	seeds["pluginC"] = plugin.SeedSet{
-		EventSeed:       456,
-		RealizationSeed: 765,
-	}
-	model := seedgeneratormodel.RealizationModel{
+	seeds := make([]string, 0)
+	seeds = append(seeds, "fc")
+	seeds = append(seeds, "pluginB")
+	seeds = append(seeds, "pluginC")
+
+	model := RealizationModel{
 		InitialEventSeed:       1234,
 		InitialRealizationSeed: 9876,
 		EventsPerRealization:   10,
-		PluginInitialSeeds:     seeds,
+		Plugins:                seeds,
 	}
 	b, err := json.Marshal(model)
 	if err != nil {
@@ -49,7 +39,7 @@ func TestReadRealizationModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	m := seedgeneratormodel.RealizationModel{}
+	m := RealizationModel{}
 	err = json.Unmarshal(b, &m)
 	if err != nil {
 		t.Fail()
@@ -62,7 +52,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	m := seedgeneratormodel.RealizationModel{}
+	m := RealizationModel{}
 	err = json.Unmarshal(b, &m)
 	if err != nil {
 		t.Fail()
@@ -131,4 +121,13 @@ func Test_GenerateSeedList(t *testing.T) {
 		fmt.Printf("%v,%v\n", i, r.Int63())
 	}
 
+}
+func Test_Advance(t *testing.T) {
+	seed := rand.Int63()
+	r := rand.New(rand.NewSource(seed))
+	now := time.Now()
+
+	advance(1000000, 25, r)
+	since := time.Since(now)
+	fmt.Println(since)
 }
