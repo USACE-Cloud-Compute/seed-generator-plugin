@@ -1,14 +1,31 @@
-package blockgeneratormodel
+package blockgeneratormodel_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/usace/seed-generator/blockgeneratormodel"
 )
 
+func ExampleBlockGenerator() {
+	blockGenerator := blockgeneratormodel.BlockGenerator{
+		BlocksPerRealization: 500,
+		TargetTotalEvents:    5000,
+		TargetEventsPerBlock: 5,
+		Seed:                 1234,
+	}
+	blocks := blockGenerator.GenerateBlocks()
+	for idx, block := range blocks {
+		if block.ContainsEvent(1) {
+			fmt.Println(idx)
+		}
+	}
+	// Output: 0
+}
 func TestGenerateBlocks(t *testing.T) {
-	blockGenerator := BlockGenerator{
+	blockGenerator := blockgeneratormodel.BlockGenerator{
 		BlocksPerRealization: 500,
 		TargetTotalEvents:    5000,
 		TargetEventsPerBlock: 5,
@@ -27,7 +44,7 @@ func TestReadBlocks(t *testing.T) {
 		t.Fail()
 		fmt.Println(err)
 	}
-	var blocks []Block
+	var blocks []blockgeneratormodel.Block
 	err = json.Unmarshal(bytes, &blocks)
 	if err != nil {
 		t.Fail()
@@ -42,7 +59,7 @@ func TestReaderBlocks(t *testing.T) {
 		t.Fail()
 		fmt.Println(err)
 	}
-	var blocks []Block
+	var blocks []blockgeneratormodel.Block
 	err = json.NewDecoder(file).Decode(&blocks)
 	if err != nil {
 		t.Fail()
