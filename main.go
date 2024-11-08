@@ -1,15 +1,20 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 
 	"github.com/usace/cc-go-sdk"
 	"github.com/usace/seed-generator/blockgeneratormodel"
 	"github.com/usace/seed-generator/seedgeneratormodel"
 )
+
+var logContext = context.Background()
 
 func main() {
 	fmt.Println("seed generator!")
@@ -17,84 +22,86 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
 	}
-	payload := pm.GetPayload()
+	payload := pm.Payload
 	err = computePayloadActions(payload)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
+		pm.Logger.Log(logContext, slog.LevelError, err.Error())
 		return
 	}
-	pm.ReportProgress(cc.StatusReport{
-		Status:   cc.SUCCEEDED,
-		Progress: 100,
-	})
+	pm.Logger.SendMessage("whatchannel?", "compute complete", slog.Attr{Key: "progress", Value: slog.IntValue(100)})
 }
 
 func computePayloadActions(payload cc.Payload) error {
 	for _, action := range payload.Actions {
-		switch action.Name {
+		switch action.Type {
 		case "block_generation":
-			generateBlocks(action)
+			err := generateBlocks(action)
+			if err != nil {
+				return err
+			}
 		case "realization_seed_generation":
-			generateSeeds(payload)
+			err := generateSeeds(payload)
+			if err != nil {
+				return err
+			}
 		case "block_seed_generation":
-			generateSeedsFromBlocks(payload)
+			err := generateSeedsFromBlocks(payload)
+			if err != nil {
+				return err
+			}
 		default:
-			log.Fatalf("%s.\n", action.Name)
+			return fmt.Errorf("could not process action of type %s", action.Type)
 		}
 	}
 
 	return nil
 }
 
-func generateBlocks(action cc.Action) {
+func generateBlocks(action cc.Action) error {
 	//initialize a blockgeneratormodel
 	blockGenerator := blockgeneratormodel.BlockGenerator{
-		TargetTotalEvents:    action.Parameters.GetInt64OrFail("target_total_events"),
-		BlocksPerRealization: action.Parameters.GetIntOrFail("blocks_per_realization"),
-		TargetEventsPerBlock: action.Parameters.GetIntOrFail("target_events_per_block"),
-		Seed:                 action.Parameters.GetInt64OrDefault("seed", 1234),
+		TargetTotalEvents:    action.Attributes.GetInt64OrFail("target_total_events"),
+		BlocksPerRealization: action.Attributes.GetIntOrFail("blocks_per_realization"),
+		TargetEventsPerBlock: action.Attributes.GetIntOrFail("target_events_per_block"),
+		Seed:                 action.Attributes.GetInt64OrDefault("seed", 1234),
 	}
 	blocks := blockGenerator.GenerateBlocks()
-	bytes, err := json.Marshal(blocks)
+	bytedata, err := json.Marshal(blocks)
 	if err != nil {
-		log.Fatal("could not encode blocks")
+		return fmt.Errorf("could not encode blocks, %v", err)
 	}
-	outputDataset_name := action.Parameters.GetStringOrFail("outputdataset_name")
+	outputDataset_name := action.Attributes.GetStringOrFail("outputdataset_name")
 	pm, err := cc.InitPluginManager()
 	if err != nil {
-		log.Fatal("could not init plugin manager")
+		return fmt.Errorf("could not init plugin manager, %v", err)
 	}
-	outputDataset, err := pm.GetOutputDataSource(outputDataset_name)
+	breader := bytes.NewReader(bytedata)
+	_, err = pm.IOManager.Put(cc.PutOpInput{
+		SrcReader: breader,
+		DataSourceOpInput: cc.DataSourceOpInput{
+			DataSourceName: outputDataset_name,
+			PathKey:        "default",
+		},
+	})
 	if err != nil {
-		log.Fatal("could not find datasource")
+		return fmt.Errorf("could not write file error: %v", err)
 	}
-	err = pm.PutFile(bytes, outputDataset, 0)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("could not write file error: %v", err))
-	}
+	return nil
 }
 func generateSeedsFromBlocks(payload cc.Payload) error {
 	pm, err := cc.InitPluginManager()
 	if err != nil {
-		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
+		return errors.New(fmt.Sprintf("Unable to initialize the plugin manager: %s\n", err))
 	}
 	if len(payload.Outputs) != 1 {
 		err := errors.New("more than one output was defined")
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
-	reader, err := pm.FileReaderByName("seedgeneratorconfig", 0)
+	reader, err := pm.IOManager.GetReader(cc.DataSourceOpInput{
+		DataSourceName: "seedgeneratorconfig",
+		PathKey:        "default",
+	})
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 	defer reader.Close()
@@ -102,64 +109,40 @@ func generateSeedsFromBlocks(payload cc.Payload) error {
 	var eventGeneratorModel seedgeneratormodel.BlockModel
 	err = json.NewDecoder(reader).Decode(&eventGeneratorModel)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
-	blockreader, err := pm.FileReaderByName("blockfile", 0)
+	blockreader, err := pm.IOManager.GetReader(cc.DataSourceOpInput{
+		DataSourceName: "blockfile",
+		PathKey:        "default",
+	})
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 	defer blockreader.Close()
 	var blocks []blockgeneratormodel.Block
 	err = json.NewDecoder(blockreader).Decode(&blocks)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 	eventIndex := pm.EventNumber()
 	modelResult, err := eventGeneratorModel.Compute(eventIndex, blocks)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 
-	bytes, err := json.Marshal(modelResult)
+	bytedata, err := json.Marshal(modelResult)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
-
-	outds, err := pm.GetOutputDataSource("seeds")
+	breader := bytes.NewReader(bytedata)
+	_, err = pm.IOManager.Put(cc.PutOpInput{
+		SrcReader: breader,
+		DataSourceOpInput: cc.DataSourceOpInput{
+			DataSourceName: "seeds",
+			PathKey:        "default",
+		},
+	})
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
-		return err
-	}
-
-	err = pm.PutFile(bytes, outds, 0)
-	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 	return nil
@@ -168,22 +151,16 @@ func generateSeedsFromBlocks(payload cc.Payload) error {
 func generateSeeds(payload cc.Payload) error {
 	pm, err := cc.InitPluginManager()
 	if err != nil {
-		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
+		return errors.New(fmt.Sprintf("Unable to initialize the plugin manager: %s\n", err))
 	}
 	if len(payload.Outputs) != 1 {
-		err := errors.New("more than one output was defined")
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
-		return err
+		return errors.New("more than one output was defined")
 	}
-	reader, err := pm.FileReaderByName("seedgenerator", 0)
+	reader, err := pm.IOManager.GetReader(cc.DataSourceOpInput{
+		DataSourceName: "seedgenerator",
+		PathKey:        "default",
+	})
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 	defer reader.Close()
@@ -191,47 +168,29 @@ func generateSeeds(payload cc.Payload) error {
 	var eventGeneratorModel seedgeneratormodel.RealizationModel
 	err = json.NewDecoder(reader).Decode(&eventGeneratorModel)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 
 	eventIndex := pm.EventNumber()
 	modelResult, err := eventGeneratorModel.Compute(eventIndex)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 
-	bytes, err := json.Marshal(modelResult)
+	bytedata, err := json.Marshal(modelResult)
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
+	breader := bytes.NewReader(bytedata)
 
-	outds, err := pm.GetOutputDataSource("seeds")
+	_, err = pm.IOManager.Put(cc.PutOpInput{
+		SrcReader: breader,
+		DataSourceOpInput: cc.DataSourceOpInput{
+			DataSourceName: "seeds",
+			PathKey:        "default",
+		},
+	})
 	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
-		return err
-	}
-
-	err = pm.PutFile(bytes, outds, 0)
-	if err != nil {
-		pm.LogError(cc.Error{
-			ErrorLevel: cc.ERROR,
-			Error:      err.Error(),
-		})
 		return err
 	}
 	return nil
