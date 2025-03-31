@@ -78,14 +78,28 @@ func generateBlocks(action cc.Action) error {
 	if err != nil {
 		return fmt.Errorf("could not init plugin manager, %v", err)
 	}
-	breader := bytes.NewReader(bytedata)
-	_, err = pm.IOManager.Put(cc.PutOpInput{
-		SrcReader: breader,
-		DataSourceOpInput: cc.DataSourceOpInput{
-			DataSourceName: outputDataset_name,
-			PathKey:        "default",
-		},
-	})
+	storeType := action.Attributes.GetStringOrFail("storeType")
+	if storeType == "eventstore" {
+		recordset, err := cc.NewEventStoreRecordset(pm, &blocks, "eventstore", "blocks")
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = recordset.Create()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = recordset.Write(&blocks)
+	} else {
+		breader := bytes.NewReader(bytedata)
+		_, err = pm.IOManager.Put(cc.PutOpInput{
+			SrcReader: breader,
+			DataSourceOpInput: cc.DataSourceOpInput{
+				DataSourceName: outputDataset_name,
+				PathKey:        "default",
+			},
+		})
+	}
+
 	if err != nil {
 		return fmt.Errorf("could not write file error: %v", err)
 	}
