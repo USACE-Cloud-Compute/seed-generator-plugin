@@ -13,11 +13,11 @@ type BlockGenerator struct {
 	Seed                 int64
 }
 type Block struct {
-	RealizationIndex int   `json:"realization_index"`
-	BlockIndex       int   `json:"block_index"`
-	BlockEventCount  int   `json:"block_event_count"`
-	BlockEventStart  int64 `json:"block_event_start"` //inclusive - will be one greater than previous event end
-	BlockEventEnd    int64 `json:"block_event_end"`   //inclusive - will be one less than event start if event count is 0.
+	RealizationIndex int   `json:"realization_index" eventstore:"realization_index"`
+	BlockIndex       int   `json:"block_index" eventstore:"block_index"`
+	BlockEventCount  int   `json:"block_event_count" eventstore:"block_event_count"`
+	BlockEventStart  int64 `json:"block_event_start" eventstore:"block_event_start"` //inclusive - will be one greater than previous event end
+	BlockEventEnd    int64 `json:"block_event_end" eventstore:"block_event_end"`     //inclusive - will be one less than event start if event count is 0.
 }
 
 func (b Block) ContainsEvent(eventIndex int) bool {

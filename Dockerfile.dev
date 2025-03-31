@@ -1,6 +1,35 @@
-FROM golang:1.23-alpine3.19 AS dev
+FROM ubuntu:24.04
 
-RUN apk add --no-cache \
-    build-base \
-    gcc \
-    git
+ENV TZ=America/New_York
+ENV PATH=/go/bin:$PATH
+ENV GOROOT=/go
+ENV GOPATH=/src/go
+ENV CGO_LDFLAGS="-L/tiledb/lib:$CGO_LDFLAGS"
+ENV CGO_CFLAGS="-I/tiledb/include:$CGO_CFLAGS"
+ENV LD_LIBRARY_PATH="/tiledb/lib:$LD_LIBRARY_PATH"
+ENV C_INCLUDE_PATH="/tiledb/include:/tiledb/include/tiledb"
+ENV VCPKG_FORCE_SYSTEM_BINARIES=1
+ENV LIBRARY_PATH="/tiledb/lib"
+
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &&\
+    mkdir /go &&\
+    mkdir -p /src/go &&\
+    apt update &&\
+    apt -y install build-essential &&\
+    apt -y install wget &&\
+    apt -y install curl &&\
+    wget https://golang.org/dl/go1.23.6.linux-amd64.tar.gz -P / &&\
+    tar -xvzf /go1.23.6.linux-amd64.tar.gz -C / &&\
+    apt -y install git &&\
+    apt -y install unzip &&\
+	apt -y install cmake ninja-build &&\
+    cd / &&\
+    wget https://github.com/TileDB-Inc/TileDB/archive/refs/tags/2.26.2.tar.gz &&\
+    tar -xvzf ./2.26.2.tar.gz  &&\
+    cd TileDB-2.26.2 &&\
+    mkdir build &&\
+    cd build &&\
+    ../bootstrap --prefix=/tiledb --enable-s3 --enable-serialization &&\
+    make &&\
+    make install-tiledb

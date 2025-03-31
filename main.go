@@ -10,6 +10,7 @@ import (
 	"log/slog"
 
 	"github.com/usace/cc-go-sdk"
+	tiledb "github.com/usace/cc-go-sdk/tiledb-store"
 	"github.com/usace/seed-generator/blockgeneratormodel"
 	"github.com/usace/seed-generator/seedgeneratormodel"
 )
@@ -18,6 +19,8 @@ var logContext = context.Background()
 
 func main() {
 	fmt.Println("seed generator!")
+	//register tiledb
+	cc.DataStoreTypeRegistry.Register("TILEDB", tiledb.TileDbEventStore{})
 	pm, err := cc.InitPluginManager()
 	if err != nil {
 		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
