@@ -91,7 +91,7 @@ func generateBlocks(action cc.Action) error {
 func generateSeedsFromBlocks(payload cc.Payload) error {
 	pm, err := cc.InitPluginManager()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Unable to initialize the plugin manager: %s\n", err))
+		return fmt.Errorf("Unable to initialize the plugin manager: %s\n", err)
 	}
 	if len(payload.Outputs) != 1 {
 		err := errors.New("more than one output was defined")
@@ -151,7 +151,7 @@ func generateSeedsFromBlocks(payload cc.Payload) error {
 func generateSeeds(payload cc.Payload) error {
 	pm, err := cc.InitPluginManager()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Unable to initialize the plugin manager: %s\n", err))
+		return fmt.Errorf("Unable to initialize the plugin manager: %s\n", err)
 	}
 	if len(payload.Outputs) != 1 {
 		return errors.New("more than one output was defined")
