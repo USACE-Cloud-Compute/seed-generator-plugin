@@ -78,7 +78,7 @@ func generateBlocks(action cc.Action) error {
 	if err != nil {
 		return fmt.Errorf("could not init plugin manager, %v", err)
 	}
-	storeType := action.Attributes.GetStringOrFail("storeType")
+	storeType := action.Attributes.GetStringOrFail("store_type")
 	if storeType == "eventstore" {
 		recordset, err := cc.NewEventStoreRecordset(pm, &blocks, "eventstore", "blocks")
 		if err != nil {
@@ -89,6 +89,9 @@ func generateBlocks(action cc.Action) error {
 			log.Fatal(err)
 		}
 		err = recordset.Write(&blocks)
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else {
 		breader := bytes.NewReader(bytedata)
 		_, err = pm.IOManager.Put(cc.PutOpInput{
