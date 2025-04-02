@@ -26,7 +26,7 @@ func main() {
 		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
 	}
 	payload := pm.Payload
-	err = computePayloadActions(payload)
+	err = computePayloadActions(payload, pm)
 	if err != nil {
 		pm.Logger.Log(logContext, slog.LevelError, err.Error())
 		return
@@ -34,11 +34,11 @@ func main() {
 	pm.Logger.SendMessage("whatchannel?", "compute complete", slog.Attr{Key: "progress", Value: slog.IntValue(100)})
 }
 
-func computePayloadActions(payload cc.Payload) error {
+func computePayloadActions(payload cc.Payload, pm *cc.PluginManager) error {
 	for _, action := range payload.Actions {
 		switch action.Type {
 		case "block_generation":
-			err := generateBlocks(action)
+			err := generateBlocks(action, pm)
 			if err != nil {
 				return err
 			}
@@ -47,8 +47,13 @@ func computePayloadActions(payload cc.Payload) error {
 			if err != nil {
 				return err
 			}
-		case "block_seed_generation":
-			err := generateSeedsFromBlocks(payload)
+		case "block_event_seed_generation":
+			err := generateEventSeedsFromBlocks(action, pm)
+			if err != nil {
+				return err
+			}
+		case "block_all_seed_generation":
+			err := generateAllSeedsFromBlocks(action, pm)
 			if err != nil {
 				return err
 			}
@@ -60,7 +65,7 @@ func computePayloadActions(payload cc.Payload) error {
 	return nil
 }
 
-func generateBlocks(action cc.Action) error {
+func generateBlocks(action cc.Action, pm *cc.PluginManager) error {
 	//initialize a blockgeneratormodel
 	blockGenerator := blockgeneratormodel.BlockGenerator{
 		TargetTotalEvents:    action.Attributes.GetInt64OrFail("target_total_events"),
@@ -74,13 +79,9 @@ func generateBlocks(action cc.Action) error {
 		return fmt.Errorf("could not encode blocks, %v", err)
 	}
 	outputDataset_name := action.Attributes.GetStringOrFail("outputdataset_name")
-	pm, err := cc.InitPluginManager()
-	if err != nil {
-		return fmt.Errorf("could not init plugin manager, %v", err)
-	}
 	storeType := action.Attributes.GetStringOrFail("store_type")
 	if storeType == "eventstore" {
-		recordset, err := cc.NewEventStoreRecordset(pm, &blocks, "eventstore", "blocks")
+		recordset, err := cc.NewEventStoreRecordset(pm, &blocks, "eventstore", outputDataset_name)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -108,30 +109,17 @@ func generateBlocks(action cc.Action) error {
 	}
 	return nil
 }
-func generateSeedsFromBlocks(payload cc.Payload) error {
-	pm, err := cc.InitPluginManager()
-	if err != nil {
-		return fmt.Errorf("Unable to initialize the plugin manager: %s\n", err)
-	}
-	if len(payload.Outputs) != 1 {
-		err := errors.New("more than one output was defined")
-		return err
-	}
-	reader, err := pm.IOManager.GetReader(cc.DataSourceOpInput{
-		DataSourceName: "seedgeneratorconfig",
-		PathKey:        "default",
-	})
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
+func generateEventSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 
 	var eventGeneratorModel seedgeneratormodel.BlockModel
-	err = json.NewDecoder(reader).Decode(&eventGeneratorModel)
+	eventGeneratorModel.InitialEventSeed = action.Attributes.GetInt64OrFail("initial_event_seed")
+	eventGeneratorModel.InitialRealizationSeed = action.Attributes.GetInt64OrFail("initial_realization_seed")
+	plugins, err := action.Attributes.GetStringSlice("plugins")
 	if err != nil {
 		return err
 	}
-	blockreader, err := pm.IOManager.GetReader(cc.DataSourceOpInput{
+	eventGeneratorModel.Plugins = plugins
+	blockreader, err := action.IOManager.GetReader(cc.DataSourceOpInput{
 		DataSourceName: "blockfile",
 		PathKey:        "default",
 	})
@@ -144,8 +132,8 @@ func generateSeedsFromBlocks(payload cc.Payload) error {
 	if err != nil {
 		return err
 	}
-	eventIndex := pm.EventNumber()
-	modelResult, err := eventGeneratorModel.Compute(eventIndex, blocks)
+
+	modelResult, err := eventGeneratorModel.Compute(pm.EventNumber(), blocks)
 	if err != nil {
 		return err
 	}
@@ -155,7 +143,7 @@ func generateSeedsFromBlocks(payload cc.Payload) error {
 		return err
 	}
 	breader := bytes.NewReader(bytedata)
-	_, err = pm.IOManager.Put(cc.PutOpInput{
+	_, err = action.Put(cc.PutOpInput{
 		SrcReader: breader,
 		DataSourceOpInput: cc.DataSourceOpInput{
 			DataSourceName: "seeds",
@@ -167,7 +155,78 @@ func generateSeedsFromBlocks(payload cc.Payload) error {
 	}
 	return nil
 }
+func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 
+	var eventGeneratorModel seedgeneratormodel.BlockModel
+	eventGeneratorModel.InitialEventSeed = action.Attributes.GetInt64OrFail("initial_event_seed")
+	eventGeneratorModel.InitialRealizationSeed = action.Attributes.GetInt64OrFail("initial_realization_seed")
+	plugins, err := action.Attributes.GetStringSlice("plugins")
+
+	if err != nil {
+		return err
+	}
+	eventGeneratorModel.Plugins = plugins
+	var blocks []blockgeneratormodel.Block
+	block_name := action.Attributes.GetStringOrFail("block_dataset_name")
+	blockStoreType := action.Attributes.GetStringOrFail("block_store_type")
+	if blockStoreType == "eventstore" {
+		recordset, err := cc.NewEventStoreRecordset(pm, &blocks, "eventstore", block_name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		//err = recordset.Create()
+		if err != nil {
+			log.Fatal(err)
+		}
+		arrayResult, err := recordset.Read()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i := 0; i < arrayResult.Size(); i++ {
+			var block blockgeneratormodel.Block
+			arrayResult.Scan(&block)
+			blocks = append(blocks, block)
+		}
+	} else {
+
+		blockreader, err := action.IOManager.GetReader(cc.DataSourceOpInput{
+			DataSourceName: "blockfile",
+			PathKey:        "default",
+		})
+		if err != nil {
+			return err
+		}
+		defer blockreader.Close()
+
+		err = json.NewDecoder(blockreader).Decode(&blocks)
+		if err != nil {
+			return err
+		}
+	}
+
+	modelResult, err := eventGeneratorModel.ComputeAll(blocks)
+	if err != nil {
+		return err
+	}
+
+	bytedata, err := json.Marshal(modelResult)
+	if err != nil {
+		return err
+	}
+	breader := bytes.NewReader(bytedata)
+	_, err = action.Put(cc.PutOpInput{
+		SrcReader: breader,
+		DataSourceOpInput: cc.DataSourceOpInput{
+			DataSourceName: "seeds",
+			PathKey:        "default",
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func generateSeeds(payload cc.Payload) error {
 	pm, err := cc.InitPluginManager()
 	if err != nil {
