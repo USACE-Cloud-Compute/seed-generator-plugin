@@ -42,7 +42,7 @@ require (
 )
 
 require (
-	github.com/usace/cc-go-sdk v0.0.0-20250401211920-110a94540c8a
+	github.com/usace/cc-go-sdk v0.0.0-20250403143552-0cb32f9ef8c7
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 )
 
