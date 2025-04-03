@@ -1,6 +1,1 @@
-FROM golang:1.23-alpine3.19 AS dev
-
-RUN apk add --no-cache \
-    build-base \
-    gcc \
-    git
+FROM cc-tiledb

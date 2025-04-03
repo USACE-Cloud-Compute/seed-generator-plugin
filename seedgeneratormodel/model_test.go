@@ -61,7 +61,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(r.RealizationNumber)
+	//fmt.Println(r.RealizationNumber)
 	outputPath := "../exampledata/result0.json"
 	rb, err := json.Marshal(r)
 	if err != nil {
@@ -75,7 +75,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(r.RealizationNumber)
+	//fmt.Println(r.RealizationNumber)
 	outputPath = "../exampledata/result12.json"
 	rb, err = json.Marshal(r)
 	if err != nil {
@@ -89,7 +89,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(r.RealizationNumber)
+	//fmt.Println(r.RealizationNumber)
 	outputPath = "../exampledata/result14.json"
 	rb, err = json.Marshal(r)
 	if err != nil {
@@ -103,7 +103,7 @@ func TestComputeModel(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	fmt.Println(r.RealizationNumber)
+	//fmt.Println(r.RealizationNumber)
 	outputPath = "../exampledata/result32.json"
 	rb, err = json.Marshal(r)
 	if err != nil {
