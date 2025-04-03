@@ -223,7 +223,7 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 				Dimensions: []cc.ArrayDimension{
 					{
 						Name:          "Plugins",
-						DimensionType: cc.DIMENSION_STRING,
+						DimensionType: cc.DIMENSION_INT,
 						Domain:        []int64{1, int64(len(plugins))},
 						TileExtent:    int64(len(plugins)),
 					}, {
@@ -252,13 +252,13 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 			}
 
 			//now make a put array input and put the data properly arranged.
-			eventseeddata := make([]int64, len(plugins)*len(modelResult))
+			eventseeddata := make([]int64, (len(plugins))*(len(modelResult)))
 			realizationseeddata := make([]int64, len(plugins)*len(modelResult))
 			for i, ec := range modelResult {
 				for j, plugin := range plugins {
 					ss := ec.Seeds[plugin]
-					eventseeddata[i*len(plugin)+j] = ss.EventSeed
-					realizationseeddata[i*len(plugin)+j] = ss.RealizationSeed
+					eventseeddata[(i*len(plugins))+j] = ss.EventSeed
+					realizationseeddata[(i*len(plugins))+j] = ss.RealizationSeed
 				}
 			}
 			//create a buffer
