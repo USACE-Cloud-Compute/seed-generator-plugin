@@ -215,6 +215,9 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 	if seedStoreType == "eventstore" {
 		//get the store
 		ds, err := pm.GetStore(seedStoreType)
+		if err != nil {
+			return err
+		}
 		//check if it is the right store type
 		tdbds, ok := ds.Session.(cc.MultiDimensionalArrayStore)
 		if ok {
@@ -282,9 +285,19 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 			if err != nil {
 				return err
 			}
+			mds, ok := ds.Session.(cc.MetadataStore)
+			if ok {
+				err = mds.PutMetadata("seed_columns", plugins)
+				if err != nil {
+					return err
+				}
+
+			} else {
+				return errors.New("could not store metadata on which plugins recieve seeds")
+			}
 		} else {
 			//store does not support this data.
-			return errors.New("store session is not a multidimensional array store.")
+			return errors.New("store session is not a multidimensional array store")
 		}
 	} else {
 		bytedata, err := json.Marshal(modelResult)
