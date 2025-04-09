@@ -225,15 +225,15 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 				ArrayPath: seed_name,
 				Dimensions: []cc.ArrayDimension{
 					{
-						Name:          "Plugins",
-						DimensionType: cc.DIMENSION_INT,
-						Domain:        []int64{1, int64(len(plugins))},
-						TileExtent:    int64(len(plugins)),
-					}, {
-						Name:          "Events",
+						Name:          "Events", //row
 						DimensionType: cc.DIMENSION_INT,
 						Domain:        []int64{1, int64(len(modelResult))},
 						TileExtent:    1,
+					}, {
+						Name:          "Plugins", //column
+						DimensionType: cc.DIMENSION_INT,
+						Domain:        []int64{1, int64(len(plugins))},
+						TileExtent:    int64(len(plugins)),
 					}, /*{
 						Name: "Seeds",
 						DimensionType: cc.DIMENSION_INT,
