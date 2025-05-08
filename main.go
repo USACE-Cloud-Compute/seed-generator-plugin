@@ -243,6 +243,7 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 				},
 				Attributes: []cc.ArrayAttribute{
 					{Name: "realization_seed", DataType: cc.ATTR_INT64},
+					{Name: "block_seed", DataType: cc.ATTR_INT64},
 					{Name: "event_seed", DataType: cc.ATTR_INT64},
 				},
 				ArrayType:  cc.ARRAY_DENSE,
@@ -256,11 +257,13 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 
 			//now make a put array input and put the data properly arranged.
 			eventseeddata := make([]int64, (len(plugins))*(len(modelResult)))
+			blockseeddata := make([]int64, (len(plugins))*(len(modelResult)))
 			realizationseeddata := make([]int64, len(plugins)*len(modelResult))
 			for i, ec := range modelResult {
 				for j, plugin := range plugins {
 					ss := ec.Seeds[plugin]
 					eventseeddata[(i*len(plugins))+j] = ss.EventSeed
+					blockseeddata[(i*len(plugins))+j] = ss.BlockSeed
 					realizationseeddata[(i*len(plugins))+j] = ss.RealizationSeed
 				}
 			}
@@ -269,6 +272,9 @@ func generateAllSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error {
 				{
 					AttrName: "event_seed",
 					Buffer:   eventseeddata,
+				}, {
+					AttrName: "block_seed",
+					Buffer:   blockseeddata,
 				},
 				{
 					AttrName: "realization_seed",
