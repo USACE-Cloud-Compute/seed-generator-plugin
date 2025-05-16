@@ -38,7 +38,12 @@ func computePayloadActions(payload cc.Payload, pm *cc.PluginManager) error {
 	for _, action := range payload.Actions {
 		switch action.Type {
 		case "block_generation":
-			err := generateBlocks(action, pm)
+			err := generateBlocks(action, pm, false)
+			if err != nil {
+				return err
+			}
+		case "block_generation_fixed_length":
+			err := generateBlocks(action, pm, true)
 			if err != nil {
 				return err
 			}
@@ -65,7 +70,7 @@ func computePayloadActions(payload cc.Payload, pm *cc.PluginManager) error {
 	return nil
 }
 
-func generateBlocks(action cc.Action, pm *cc.PluginManager) error {
+func generateBlocks(action cc.Action, pm *cc.PluginManager, fixed_length bool) error {
 	//initialize a blockgeneratormodel
 	blockGenerator := blockgeneratormodel.BlockGenerator{
 		TargetTotalEvents:    action.Attributes.GetInt64OrFail("target_total_events"),
@@ -73,7 +78,13 @@ func generateBlocks(action cc.Action, pm *cc.PluginManager) error {
 		TargetEventsPerBlock: action.Attributes.GetIntOrFail("target_events_per_block"),
 		Seed:                 action.Attributes.GetInt64OrDefault("seed", 1234),
 	}
-	blocks := blockGenerator.GenerateBlocks()
+	var blocks []blockgeneratormodel.Block
+	if fixed_length {
+		blocks = blockGenerator.GenerateBlocksFixedLength()
+	} else {
+		blocks = blockGenerator.GenerateBlocks()
+	}
+
 	bytedata, err := json.Marshal(blocks)
 	if err != nil {
 		return fmt.Errorf("could not encode blocks, %v", err)
