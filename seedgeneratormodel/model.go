@@ -73,8 +73,7 @@ func (m BlockModel) ComputeAll(blocks []blockgeneratormodel.Block) ([]EventConfi
 				realRandoms[pluginName] = realrng.Int63() // unique to each plugin
 			}
 		}
-		for eventIndex < b.BlockEventEnd {
-			eventIndex += 1 //update event index
+		for eventIndex <= b.BlockEventEnd {
 			seeds := make(map[string]SeedSet)
 			for _, pluginName := range m.Plugins { //compute seeds
 				seeds[pluginName] = SeedSet{
@@ -84,6 +83,7 @@ func (m BlockModel) ComputeAll(blocks []blockgeneratormodel.Block) ([]EventConfi
 				}
 			}
 			configs = append(configs, EventConfiguration{Seeds: seeds})
+			eventIndex += 1 //update event index
 		}
 	}
 
