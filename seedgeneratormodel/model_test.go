@@ -122,6 +122,22 @@ func Test_GenerateSeedList(t *testing.T) {
 	}
 
 }
+
+func Test_MarshalUnMarshal(t *testing.T) {
+	seed := 1234
+	r := rand.New(rand.NewSource(int64(seed)))
+	plugins := []string{"a", "b", "c"}
+	ec := createEventConfiguration(1, 1, 1, r.Int63(), r.Int63(), r.Int63(), plugins)
+	bytes, err := json.Marshal(ec)
+	if err != nil {
+		t.Fail()
+	}
+	var ec2 EventConfiguration
+	err = json.Unmarshal(bytes, &ec2)
+	if err != nil {
+		t.Fail()
+	}
+}
 func Test_Advance(t *testing.T) {
 	seed := rand.Int63()
 	r := rand.New(rand.NewSource(seed))
