@@ -1,9 +1,5 @@
-FROM golang:1.23-alpine3.19 AS builder
+FROM cc-tiledb AS builder
 
-RUN apk add --no-cache \
-    build-base \
-    gcc \
-    git
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
@@ -16,7 +12,30 @@ RUN go mod tidy
 RUN go build -o seed-generator
 
 
-FROM alpine:3.19 AS prod
+FROM ubuntu:24.04 AS prod
 
+ARG TILEDB_VERSION=2.26.2
+ARG TILEDB_LIB=/usr/local/lib/tiledb
+ARG TILEDB_SRC=/opt/tiledb
+
+ENV PATH=/root/.local/bin:$PATH
+ENV LD_LIBRARY_PATH="${TILEDB_LIB}/lib"
+ENV C_INCLUDE_PATH="${TILEDB_SRC}/include:${TILEDB_SRC}/include/tiledb"
+ENV VCPKG_FORCE_SYSTEM_BINARIES=1
+ENV LIBRARY_PATH="${TILEDB_LIB}/lib"
+
+RUN apt update &&\
+    apt -y install libssl-dev libbz2-dev libgdbm-dev uuid-dev libncurses-dev libffi-dev libgdbm-compat-dev sqlite3 lzma lzma-dev &&\
+    apt -y install wget build-essential cmake ninja-build doxygen curl zip unzip tar &&\
+    wget https://github.com/TileDB-Inc/TileDB/archive/refs/tags/${TILEDB_VERSION}.tar.gz &&\
+    tar -xvzf ./${TILEDB_VERSION}.tar.gz  &&\
+    mv /TileDB-${TILEDB_VERSION} /opt/tiledb &&\
+    cd /opt/tiledb &&\
+    mkdir build &&\
+    cd build &&\
+    ../bootstrap --prefix=${TILEDB_LIB} --enable-s3 --enable-serialization &&\
+    make &&\
+    make install-tiledb &&\
+    rm /${TILEDB_VERSION}.tar.gz
 WORKDIR /app
 COPY --from=builder /app/seed-generator/seed-generator .
