@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"strconv"
 
 	"github.com/usace/cc-go-sdk"
 	tiledb "github.com/usace/cc-go-sdk/tiledb-store"
@@ -31,7 +32,7 @@ func main() {
 		pm.Logger.Log(logContext, slog.LevelError, err.Error())
 		return
 	}
-	pm.Logger.SendMessage("whatchannel?", "compute complete", slog.Attr{Key: "progress", Value: slog.IntValue(100)})
+	//pm.Logger.SendMessage("whatchannel?", "compute complete", slog.Attr{Key: "progress", Value: slog.IntValue(100)})
 }
 
 func computePayloadActions(payload cc.Payload, pm *cc.PluginManager) error {
@@ -144,7 +145,11 @@ func generateEventSeedsFromBlocks(action cc.Action, pm *cc.PluginManager) error 
 		return err
 	}
 
-	modelResult, err := eventGeneratorModel.Compute(pm.EventNumber(), blocks)
+	eventNumber, err := strconv.Atoi(pm.EventIdentifier)
+	if err != nil {
+		return err
+	}
+	modelResult, err := eventGeneratorModel.Compute(eventNumber, blocks)
 	if err != nil {
 		return err
 	}
@@ -358,7 +363,10 @@ func generateSeeds(payload cc.Payload) error {
 		return err
 	}
 
-	eventIndex := pm.EventNumber()
+	eventIndex, err := strconv.Atoi(pm.EventIdentifier)
+	if err != nil {
+		return err
+	}
 	modelResult, err := eventGeneratorModel.Compute(eventIndex)
 	if err != nil {
 		return err

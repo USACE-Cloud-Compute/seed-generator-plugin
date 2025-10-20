@@ -2,8 +2,6 @@ module github.com/usace/seed-generator
 
 go 1.23.0
 
-toolchain go1.23.3
-
 //replace github.com/usace/cc-go-sdk => /Users/rdcrlrsg/Projects/programming/hec/cc-go-sdk
 
 require (
@@ -42,7 +40,7 @@ require (
 )
 
 require (
-	github.com/usace/cc-go-sdk v0.0.0-20250403143552-0cb32f9ef8c7
+	github.com/usace/cc-go-sdk v0.0.0-20251014151345-652ad9672b7d
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 )
 
