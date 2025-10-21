@@ -54,7 +54,7 @@ jobs:
         run: |
           # Extract the version number by removing the 'v' prefix
           v=$(echo "${{ github.ref }}" | sed -e 's/^refs\/tags\/v//')
-          echo "Extracted version: $VERSION"
+          echo "Extracted version: $v"
           echo "version=$v" >> "$GITHUB_OUTPUT"
           echo "minor=${v%.*}" >> "$GITHUB_OUTPUT"
           echo "major=${v%%.*}" >> "$GITHUB_OUTPUT"
