@@ -1,17 +1,8 @@
 name: Build & Publish (multi-arch to GHCR)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/build-push-ghcr.yml
-      - "Dockerfile.prod"
-      - ".version"
-  pull_request:
-    paths:
-      - .github/workflows/build-push-ghcr.yml
-      - "Dockerfile.prod"
-      - ".version"
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -20,8 +11,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   OWNER: usace-cloud-compute
-  IMAGE_NAME: cc-seed-generator-plugin
-  VERSION_FILE: .version
+  IMAGE_NAME: seed-generator-plugin
   TAG: latest
 
 jobs:
@@ -59,10 +49,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Read and split version
+      - name: Get tag version
         id: version
         run: |
-          v=$(cat ${{ env.VERSION_FILE }})
+          # Extract the version number by removing the 'v' prefix
+          v=$(echo "${{ github.ref }}" | sed -e 's/^refs\/tags\/v//')
+          echo "Extracted version: $VERSION"
           echo "version=$v" >> "$GITHUB_OUTPUT"
           echo "minor=${v%.*}" >> "$GITHUB_OUTPUT"
           echo "major=${v%%.*}" >> "$GITHUB_OUTPUT"
