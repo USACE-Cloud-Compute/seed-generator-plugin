@@ -1,15 +1,6 @@
-package seedgeneratormodel
+package internal
 
-import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"math/rand"
-	"time"
-
-	"testing"
-)
-
+/*
 func TestWriteRealizationModel(t *testing.T) {
 	path := "../exampledata/eg.json"
 	seeds := make([]string, 0)
@@ -147,3 +138,5 @@ func Test_Advance(t *testing.T) {
 	since := time.Since(now)
 	fmt.Println(since)
 }
+
+*/

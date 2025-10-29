@@ -1,11 +1,9 @@
-package seedgeneratormodel
+package internal
 
 import (
 	"errors"
 	"math"
 	"math/rand"
-
-	"github.com/usace/seed-generator/blockgeneratormodel"
 )
 
 // EventConfiguration is a simple structure to support consistency in cc plugins regarding the usage of seeds for natural variability and knowledge uncertainty and realization numbers for indexing
@@ -41,7 +39,7 @@ type BlockModel struct {
 	Plugins                []string `json:"plugins"` //model or plugin name and string
 }
 
-func (m BlockModel) Compute(eventIndex int, blocks []blockgeneratormodel.Block) (EventConfiguration, error) {
+func (m BlockModel) Compute(eventIndex int, blocks []Block) (EventConfiguration, error) {
 	blockIndex := 0
 	for _, b := range blocks {
 		blockIndex++ //blocks are numbered incrimentally within each realization, they must be incrimented across realizations for seed advancement
@@ -54,7 +52,7 @@ func (m BlockModel) Compute(eventIndex int, blocks []blockgeneratormodel.Block) 
 	}
 	return EventConfiguration{}, errors.New("event index not found in blocks")
 }
-func (m BlockModel) ComputeAll(blocks []blockgeneratormodel.Block) ([]EventConfiguration, error) {
+func (m BlockModel) ComputeAll(blocks []Block) ([]EventConfiguration, error) {
 	eventrng := rand.New(rand.NewSource(m.InitialEventSeed))
 	eventIndex := blocks[0].BlockEventStart
 	blockrng := rand.New(rand.NewSource(m.InitialBlockSeed))

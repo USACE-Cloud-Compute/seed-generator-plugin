@@ -1,8 +1,6 @@
-module github.com/usace/seed-generator
+module github.com/usace-cloud-compute/seed-generator
 
 go 1.23.0
-
-//replace github.com/usace/cc-go-sdk => /Users/rdcrlrsg/Projects/programming/hec/cc-go-sdk
 
 require (
 	github.com/TileDB-Inc/TileDB-Go v0.32.0 // indirect
@@ -33,15 +31,13 @@ require (
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
-	github.com/usace/filesapi v0.0.0-20250320132414-61c781325b9a // indirect
+	github.com/usace-cloud-compute/cc-go-sdk v0.0.0-20251028200929-467ec9a1f90f // indirect
+	github.com/usace-cloud-compute/filesapi v0.0.0-20251028183744-20a294ce41f9 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20231121144256-b99613f794b6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require (
-	github.com/usace/cc-go-sdk v0.0.0-20251014151345-652ad9672b7d
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
-)
+require golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 
 require gonum.org/v1/gonum v0.16.0
