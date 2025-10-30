@@ -43,3 +43,6 @@ Seed generation relies on an action in the seed-generator plugin named "block_al
 
  ## Actions and Action documentation
   - [Block All Seed Generation](./internal/actions/block-all-seed-generation-action.md): generate seeds for compute runs the follow a realization/block structure
+  - [Block Event Seed Generation](./internal/actions/block-event-seed-generation-action.md): generate seeds for an events structure
+  - [Block Generation](./internal/actions/block-generation-action.md): generate blocks of events
+  - [Realization Seed Generation](./internal/actions/realization-seed-generation-action.md): generate seeds for compute realizations
