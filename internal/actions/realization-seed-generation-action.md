@@ -4,12 +4,7 @@
 The Realization Seed Generation Action is responsible for generating seed data based on a provided realization model. It reads input data from a designated data source, processes it using the realization model's compute function, and outputs the generated seed data to another data source.
 
 ## Implementation Details
-This action implements the `cc.ActionRunner` interface and is registered under the name "realization-seed-generation". It performs the following key operations:
-- Retrieves input data from the "seedgenerator" data source
-- Decodes the JSON payload into a `RealizationModel`
-- Uses the event identifier to compute the realization model
-- Marshals the computed result into JSON
-- Writes the output to the "seeds" data source
+This action implements the `cc.ActionRunner` interface and is registered under the name "realization-seed-generation".
 
 ## Process Flow
 1. Action is invoked with a payload containing a single output
@@ -24,38 +19,23 @@ This action implements the `cc.ActionRunner` interface and is registered under t
 
 ### Environment
 - No specific environment variables required
-- Requires proper data source configuration in the plugin manager
-
-### Attributes
-- Action name: `realization-seed-generation`
-- Plugin type: `ActionRunner`
 
 ### Action
-```json
-{
-  "name": "realization-seed-generation",
-  "type": "action",
-  "config": {}
-}
-```
-
+### Attributes
+- No action attribute configuration required
 ### Global
-- No global configuration required
+- No global attribute configuration required
 
-### Inputs
-- `eventIdentifier`: String representing the event index for computation
-- `outputs`: Array containing exactly one output definition
+### Input Configuration
 
 ### Input Data Sources
-- `seedgenerator`: Data source containing the realization model
-- Path key: `default`
+- **seedgenerator**: Contains realization model data for seed computation. The configuration requires a data source named `seedgenerator` and it should have a single **Path** with a key value of **default**
 
 ### Outputs
 - Single output definition with path key `default`
 
 ### Output Data Sources
-- `seeds`: Data source for storing generated seed data
-- Path key: `default`
+- `seeds`: Data source for storing generated seed data and has a single path key: **default**
 
 ## Configuration Examples
 
@@ -63,84 +43,40 @@ This action implements the `cc.ActionRunner` interface and is registered under t
 ```json
 {
   "action": "realization-seed-generation",
-  "inputs": {
-    "eventIdentifier": "42"
-  },
-  "outputs": [
+  "inputs": [
     {
-      "pathKey": "default",
-      "dataSourceName": "seeds"
-    }
-  ]
-}
-```
-
-### Complete Configuration
-```json
-{
-  "action": "realization-seed-generation",
-  "inputs": {
-    "eventIdentifier": "100"
-  },
-  "outputs": [
-    {
-      "pathKey": "default",
-      "dataSourceName": "seeds"
+      "name": "seedgenerator",
+      "paths": {
+        "default": "conformance/simulations/seed-model.json"
+      },
+      "store_name": "FFRD"
     }
   ],
-  "dataSources": {
-    "seedgenerator": {
-      "type": "file",
-      "path": "/data/seed-model.json"
-    },
-    "seeds": {
-      "type": "file",
-      "path": "/data/generated-seeds.json"
+  
+  "outputs": [
+    {
+      "name": "seeds",
+      "paths": {
+        "default": "conformance/simulations/seeds.json"
+      },
+      "store_name": "FFRD"
     }
-  }
+  ]
 }
 ```
 
 ## Outputs
 
 ### Format
-JSON-encoded data representing the computed seed values
+JSON array containing seed information for each block and plugin combination
 
-### Fields
-- `eventIndex`: Integer representing the event identifier used for computation
-- `computedData`: Object containing the generated seed data
+### Data Structures
+the seed information is structured as a map of seedsets.
 
-### Field Definitions
-- `eventIndex`: The integer value of the event identifier used for computation
-- `computedData`: The result of the realization model computation
+### Seed Set Fields
+- `event_seed`: Random seed value for event-level randomization
+- `block_seed`: Random seed value for block-level randomization
+- `realization_seed`: Random seed value for realization-level randomization
 
 ## Error Handling
-The action handles several error conditions:
-- Returns error if more than one output is defined in the payload
-- Returns error if input data cannot be read from the "seedgenerator" data source
-- Returns error if JSON decoding fails
-- Returns error if event identifier cannot be converted to integer
-- Returns error if model computation fails
-- Returns error if JSON marshaling fails
-- Returns error if output cannot be written to the "seeds" data source
-
-## Usage Notes
-- The action requires exactly one output definition in the payload
-- The event identifier must be convertible to an integer
-- Input data must be valid JSON that can be decoded into a `RealizationModel`
-- The action assumes the existence of properly configured data sources named "seedgenerator" and "seeds"
-
-## Future Enhancements
-- Support for multiple outputs
-- Enhanced error reporting with more detailed context
-- Configuration options for data source paths
-- Support for different data formats beyond JSON
-- Batch processing capabilities
-
-## Patterns and Best Practices
-- Always validate input parameters before processing
-- Use proper error handling with descriptive error messages
-- Close readers and writers appropriately
-- Maintain consistent data source naming conventions
-- Ensure JSON serialization/deserialization errors are handled gracefully
-- Use appropriate data types for event identifiers
+Errors are logged to the compute environment and processing will stop on error

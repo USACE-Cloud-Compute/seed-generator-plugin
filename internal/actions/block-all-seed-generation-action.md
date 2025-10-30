@@ -27,7 +27,7 @@ This action implements the `cc.ActionRunner` interface and is registered in the 
 ### Action
 | Attribute | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `initial_event_seed` | int64 | Yes | Starting seed value for event-level randomization |
+| `initial_event_seed` | int | Yes | Starting seed value for event-level randomization |
 | `plugins` | string array | Yes | List of plugin names that will receive seeds |
 | `block_dataset_name` | string | Yes | Name of the input dataset containing blocks |
 | `block_store_type` | string | Yes | Storage type for input blocks ("eventstore" or "file") |
@@ -122,3 +122,4 @@ Errors are logged to the compute environment and processing will stop on error
 
 ## Usage Notes
 - For large datasets, consider using eventstore for better performance and memory management
+- Event Stores are considered experimental and might change in the future

@@ -2,7 +2,7 @@
 
 ## Description
 
-The Block Generation Action is responsible for creating synthetic event data blocks based on specified parameters. It generates event data that can be used for testing, simulation, or demonstration purposes. The action supports both fixed-length and variable-length block generation modes, allowing flexibility in how event data is structured and organized.
+The Block Generation Action is responsible for creating synthetic event data blocks. It generates event data that can be used for testing, simulation, or demonstration purposes. The action supports both fixed-length and variable-length block generation modes, allowing flexibility in how event data is structured and organized.
 
 ## Implementation Details
 
@@ -20,7 +20,6 @@ The generated blocks are either stored in an event store or written to a data so
 4. Generate blocks using appropriate method
 5. Marshal blocks to JSON format
 6. Store blocks in configured output destination (eventstore or data source)
-7. Return success or error status
 
 ## Configuration
 
@@ -29,6 +28,8 @@ The generated blocks are either stored in an event store or written to a data so
 No specific environment variables required.
 
 ### Attributes
+
+### Action
 
 | Attribute | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -39,27 +40,12 @@ No specific environment variables required.
 | `outputdataset_name` | string | Yes | Name of the output dataset |
 | `store_type` | string | Yes | Storage type ("eventstore" or other) |
 
-### Action
-
-```json
-{
-  "name": "block-generation",
-  "attributes": {
-    "target_total_events": 1000,
-    "blocks_per_realization": 10,
-    "target_events_per_block": 100,
-    "seed": 1234,
-    "outputdataset_name": "generated-events",
-    "store_type": "eventstore"
-  }
-}
-```
 
 ### Global
 
 No global configuration required.
 
-### Inputs
+### Input Configuration
 
 No explicit inputs required beyond the action attributes.
 
@@ -67,14 +53,13 @@ No explicit inputs required beyond the action attributes.
 
 No input data sources required.
 
-### Outputs
+### Output Configuraltion
 
 The action generates event data blocks that are stored in the configured output destination.
-
-### Output Data Sources
-
-- Event Store: When `store_type` is "eventstore"
-- Data Source: When `store_type` is any other value
+## Output Configuration
+- **blocks**: Seeds are written to an **event** store or a **Data Source** file resource depending on the configuration. 
+  - **event store**: When event store is configured the seeds will be written to the store as a multi-dimensional dense array (refer to event store documentation for additional details) using the `outputdataset_name` for the array name.
+  - **Data Source**: When a data source is configured for the output, a Data Source configuration must be included in the configuration with the name of the data source being the same as `outputdataset_name` and including a path with a key value of **default**   
 
 ## Configuration Examples
 
@@ -91,22 +76,15 @@ The action generates event data blocks that are stored in the configured output 
     "outputdataset_name": "standard-blocks",
     "store_type": "eventstore"
   }
-}
-```
-
-### Fixed-Length Block Generation
-
-```json
-{
-  "name": "block-generation-fixed-length",
-  "attributes": {
-    "target_total_events": 10000,
-    "blocks_per_realization": 20,
-    "target_events_per_block": 500,
-    "seed": 999,
-    "outputdataset_name": "fixed-length-blocks",
-    "store_type": "filestore"
-  }
+  "outputs": [
+    {
+      "name": "blocks.json",
+      "paths": {
+        "default": "conformance/simulations/blocks.json"
+      },
+      "store_name": "FFRD"
+    }
+  ]
 }
 ```
 
@@ -114,57 +92,22 @@ The action generates event data blocks that are stored in the configured output 
 
 ### Format
 
-JSON array of block objects containing event data.
+JSON array of block objects.
 
 ### Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `BlockID` | string | Unique identifier for the block |
-| `Events` | array | Array of event objects |
-| `EventCount` | int32 | Number of events in the block |
-| `Timestamp` | string | Block creation timestamp |
+| `realization_index` | int | Realization index which is 1-indexed |
+| `block_index` | int | Block index which is 1-indexed |
+| `block_event_count` | int | Number of events in the block |
+| `block_event_start` | int | Starting event number for the block |
+| `block_event_end` | int | Ending event number for the block |
 
-### Field Definitions
-
-- `BlockID`: A unique identifier for each generated block
-- `Events`: Array containing the actual event data objects
-- `EventCount`: Number of events contained in the block
-- `Timestamp`: Creation timestamp of the block in ISO format
 
 ## Error Handling
-
-The action handles several error conditions:
-1. JSON marshaling failures when encoding blocks
-2. Event store creation failures
-3. Data source write failures
-4. Missing required attributes
-5. Invalid configuration parameters
-
-All errors are logged with descriptive messages and propagated up the call stack.
+Errors are logged to the compute environment and processing will stop on error
 
 ## Usage Notes
-
-1. The action requires proper configuration of output destinations
-2. For reproducible results, always specify a seed value
-3. The `target_total_events` parameter should be divisible by `blocks_per_realization` for optimal results
-4. When using eventstore, ensure the event store is properly configured and accessible
-5. For large datasets, consider the memory implications of JSON marshaling
-
-## Future Enhancements
-
-1. Add support for different event data formats (CSV, XML)
-2. Implement parallel block generation for better performance
-3. Add data validation for configuration parameters
-4. Support for custom event generators
-5. Integration with more storage backends
-
-## Patterns and Best Practices
-
-1. Always provide default values for optional parameters
-2. Use descriptive error messages for debugging
-3. Implement proper logging for monitoring and debugging
-4. Validate input parameters before processing
-5. Follow the existing code structure and naming conventions
-6. Ensure thread safety when dealing with shared resources
-7. Provide comprehensive documentation for all configuration options
+- For large datasets, consider using eventstore for better performance and memory management
+- Event Stores are considered experimental and might change in the future
