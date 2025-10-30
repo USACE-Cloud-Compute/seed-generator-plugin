@@ -69,7 +69,7 @@ This action implements the `cc.ActionRunner` interface and is registered in the 
 }
 ```
 
-### Using File Store for Input and Event Store for Output
+### Using File Store for Input and Output
 ```json
 {
   "action": "block-all-seed-generation",
