@@ -1,41 +1,43 @@
 package internal
 
-/*
-func TestWriteRealizationModel(t *testing.T) {
-	path := "../exampledata/eg.json"
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"math/rand"
+	"reflect"
+	"testing"
+	"time"
+)
+
+func TestRealizationModel(t *testing.T) {
+
 	seeds := make([]string, 0)
 	seeds = append(seeds, "fc")
 	seeds = append(seeds, "pluginB")
 	seeds = append(seeds, "pluginC")
 
-	model := RealizationModel{
+	expectedModel := RealizationModel{
 		InitialEventSeed:       1234,
 		InitialRealizationSeed: 9876,
 		EventsPerRealization:   10,
 		Plugins:                seeds,
 	}
-	b, err := json.Marshal(model)
+	b, err := json.Marshal(expectedModel)
 	if err != nil {
 		t.Fail()
 	}
-	err = ioutil.WriteFile(path, b, 0600)
-	if err != nil {
-		t.Fail()
-	}
-}
-func TestReadRealizationModel(t *testing.T) {
-	path := "../exampledata/eg.json"
 
-	b, err := ioutil.ReadFile(path) //ReadFile(path)
+	actualModel := RealizationModel{}
+	err = json.Unmarshal(b, &actualModel)
 	if err != nil {
-		t.Fail()
+		t.Error(err)
 	}
-	m := RealizationModel{}
-	err = json.Unmarshal(b, &m)
-	if err != nil {
-		t.Fail()
+	if !reflect.DeepEqual(expectedModel, actualModel) {
+		t.Errorf("expected %v got %v", expectedModel, actualModel)
 	}
 }
+
 func TestComputeModel(t *testing.T) {
 	path := "../exampledata/eg.json"
 
@@ -138,5 +140,3 @@ func Test_Advance(t *testing.T) {
 	since := time.Since(now)
 	fmt.Println(since)
 }
-
-*/

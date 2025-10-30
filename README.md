@@ -39,3 +39,7 @@ Seed generation relies on an action in the seed-generator plugin named "block_al
     - "params": {"root": "model-library/ffrd-trinity} (where the name of the HUC4 basin is correctly identified, and if the root is not model library it should match your environment and infrastructure)
  5. Ensure your compute-stream.json file points at your compute-manifest.json and the seed-generator-plugin-manifest.json correctly, also ensure that the stream_list.csv has only one event defined (this will trigger one job in aws, which will be for the entire simulation in the case of this plugin)
  6. run the manifestor: .\manifestor --envFile="your env file" run --computeFile="compute-stream.json"
+
+
+ ## Actions and Action documentation
+  - [Block All Seed Generation](./internal/actions/block-all-seed-generation-action.md): generate seeds for compute runs the follow a realization/block structure
