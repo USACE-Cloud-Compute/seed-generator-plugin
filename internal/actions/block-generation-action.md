@@ -27,6 +27,8 @@ The generated blocks are either stored in an event store or written to a data so
 
 No specific environment variables required.
 
+---
+
 ### Attributes
 
 ### Action
@@ -43,9 +45,10 @@ No specific environment variables required.
 
 ### Global
 
-No global configuration required.
+No global attributes are required.
 
-### Input Configuration
+---
+## Input Configuration
 
 No explicit inputs required beyond the action attributes.
 
@@ -53,9 +56,6 @@ No explicit inputs required beyond the action attributes.
 
 No input data sources required.
 
-### Output Configuraltion
-
-The action generates event data blocks that are stored in the configured output destination.
 ## Output Configuration
 - **blocks**: Seeds are written to an **event** store or a **Data Source** file resource depending on the configuration. 
   - **event store**: When event store is configured the seeds will be written to the store as a multi-dimensional dense array (refer to event store documentation for additional details) using the `outputdataset_name` for the array name.

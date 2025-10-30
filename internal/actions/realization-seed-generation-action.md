@@ -20,18 +20,20 @@ This action implements the `cc.ActionRunner` interface and is registered under t
 ### Environment
 - No specific environment variables required
 
-### Action
+---
 ### Attributes
+### Action
 - No action attribute configuration required
 ### Global
 - No global attribute configuration required
 
-### Input Configuration
+
+## Input Configuration
 
 ### Input Data Sources
 - **seedgenerator**: Contains realization model data for seed computation. The configuration requires a data source named `seedgenerator` and it should have a single **Path** with a key value of **default**
 
-### Outputs
+## Output Configuration
 - Single output definition with path key `default`
 
 ### Output Data Sources

@@ -19,9 +19,9 @@ This action implements the `cc.ActionRunner` interface and is registered under t
 ### Environment
 - Requires access to input/output data sources
 - Must have proper permissions for reading block data and writing seed data
+---
 
 ### Attributes
-
 ### Action
 | Attribute | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -31,13 +31,14 @@ This action implements the `cc.ActionRunner` interface and is registered under t
 
 ### Global
 - No global attributes required
-
+---
 ### Input Cofiguration
 - Block data from "blockfile" data source
 
 ### Input Data Sources
 - **blockfile**: Contains block data for seed computation. The configuration requires a data source named `blockfile` and it should have a single **Path** with a key value of **default**
 
+---
 ### Output Configuration
 
 ### Output Data Sources
