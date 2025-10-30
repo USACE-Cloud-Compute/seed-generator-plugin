@@ -8,7 +8,6 @@ import (
 	_ "github.com/usace-cloud-compute/seed-generator/internal/actions"
 )
 
-var version string
 var commit string
 var date string
 
@@ -21,7 +20,7 @@ func main() {
 		log.Fatalf("Unable to initialize the plugin manager: %s\n", err)
 	}
 
-	pm.Logger.Info("Seed Generator", "version", version, "commit", commit, "build-date", date)
+	pm.Logger.Info("Seed Generator", "version", commit, "build-date", date)
 
 	err = pm.RunActions()
 	if err != nil {

@@ -2,12 +2,11 @@
 
 # Variables
 BINARY_NAME = seed-generator
-VERSION = v0.9.8
 COMMIT = $(shell git describe --tags --always --long)
 DATE = $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # Build flags
-LDFLAGS = -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)"
+LDFLAGS = -ldflags "-X main.commit=$(COMMIT) -X main.date=$(DATE)"
 
 # Default target
 all: build
