@@ -18,7 +18,6 @@ This action implements the `cc.ActionRunner` interface and is registered in the 
 ### Environment
 
 - Requires access to configured data stores (eventstore or file-based)
-- Must have proper plugin manager setup
 - Requires appropriate permissions for reading/writing to configured data sources
 ---
 
