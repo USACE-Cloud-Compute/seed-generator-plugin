@@ -1,48 +1,148 @@
-### Seed Generator
+# Seed Generator
 
 For simulations that contain a nested loop for natural variability and knowledge uncertainty there is a need for seeds for realization and events. For simulations that also include multiple events for a synthetic year, each event is further associated with a "block" or synthetic year which has a conisistent seed. The realization seed is held constant across a realization, and the block or synthetic year seed is held constant across a block or synthetic year.
 
-## Plugin
-Seed generation is the second step in a simulation. It defines the reproducable seeds for each plugin for each realization, block and event. It is an action in the Seed-Generator plugin.
+The seed generator plugin defines the reproducable seeds for stochasic simulation realizations and blocks 
 
-## Action Parameterization
-Seed generation relies on an action in the seed-generator plugin named "block_all_seed_generation" all input parameters are defined in the action's attributes and input datasources. The action produces a single ouput specified at the action level named seeds.json. For FFRD the seeds are generated based on the structure of the blocks.json file to determine the count and structure of seeds, and the names of the plugin/model unit names to define how many events are generated for each event.
-# Attributes
- - "block_dataset_name": the name of the dataset in the input datasources that should be used to define the number of events per block, blocks per realization, and total realization count.
- - "block_store_type": defines the store type for the blocks. For FFRD the SOP dictates json format.
- - "seed_dataset_name": the name of the datasource in the output datasources of the action that represents the output for seeds.
- - "seed_dataset_name": defines the store type for the seeds. For FFRD the SOP dictates json format.
- - "initial_event_seed": an int64 that defines the seed for a random number generator that generates event seeds.
- - "initial_block_seed": an int64 that defines the seed for a random number generator that generates block seeds.
- - "initial_realization_seed": an int64 that defines the seed for a random number generator that generates realization seeds.
- - "plugins": this is an array of string, each string representing a plugin that needs the event, block, or realization seeds for each event.
+## Seed Generator Image
+The current image is in the usace cloud compute ghcr at: `ghcr.io/usace-cloud-compute/seed-generator-plugin:latest`.
 
- ## Steps to compute on aws
- 1. Ensure that the seed-generator plugin is loaded into your instance of ECR and the image and tag name in the seed-generator-plugin-manifest.json is correct.
- 2. Set the scenario attribute in the compute-manifest.json payload attributes to be consistent with the conformance or production phase
-    - Conformance: "scenario": "conformance"
-    - Production: "scenario": "production"
- 3. Ensure the store is set correctly
-    - "store_type": "S3"
-    - "params": {"root": "model-library/ffrd-trinity} (where the name of the HUC4 basin is correctly identified, and if the root is not model library it should match your environment and infrastructure)
- 4. Ensure your compute-stream.json file points at your compute-manifest.json and the seed-generator-plugin-manifest.json correctly, also ensure that the stream_list.csv has only one event defined (this will trigger one job in aws, which will be for the entire simulation in the case of this plugin)
- 5. run the manifestor: .\manifestor --envFile="your env file" run --computeFile="compute-stream.json"
+## Resource Requirements
+The seed generate requires little in the way of resources:
+  - vCPU: 1 or 2
+  - Memory: >1GB
 
-  ## Steps to compute on docker-local
- 1. Ensure that the seed-generator plugin image has been downloaded into your local docker repo the image and tag name in the seed-generator-plugin-manifest.json is correct.
- 2. start docker-compose.yaml to initalize minio
- 3. Set the scenario attribute in the compute-manifest.json payload attributes to be consistent with the conformance or production phase
-    - Conformance: "scenario": "conformance"
-    - Production: "scenario": "production"
- 4. Ensure the store is set correctly
-    - "store_type": "S3"
-    - "params": {"root": "model-library/ffrd-trinity} (where the name of the HUC4 basin is correctly identified, and if the root is not model library it should match your environment and infrastructure)
- 5. Ensure your compute-stream.json file points at your compute-manifest.json and the seed-generator-plugin-manifest.json correctly, also ensure that the stream_list.csv has only one event defined (this will trigger one job in aws, which will be for the entire simulation in the case of this plugin)
- 6. run the manifestor: .\manifestor --envFile="your env file" run --computeFile="compute-stream.json"
-
-
- ## Actions and Action documentation
+## Actions and Action documentation
   - [Block All Seed Generation](./internal/actions/block-all-seed-generation-action.md): generate seeds for compute runs the follow a realization/block structure
   - [Block Event Seed Generation](./internal/actions/block-event-seed-generation-action.md): generate seeds for an events structure
   - [Block Generation](./internal/actions/block-generation-action.md): generate blocks of events
   - [Realization Seed Generation](./internal/actions/realization-seed-generation-action.md): generate seeds for compute realizations
+
+## Running
+To run the seed generator, the you will need to perform the following:
+  - Create a `plugin-manifest` this is used to `register` the seed-generator with your compute provider.  Note that if you have already registered the seed-generator in your environment, you will not need to do so again.
+    - sample seed generator plugin manifests can be referenced from the following:
+      - AWS Batch...
+      - Local Docker...    
+
+## Plugin Manifests
+Detailed descriptions for the plugin manifest configuration are provided below.  The following fields are required:
+  - `name`: the required name represents the name that this plugin will be registered under.  In AWS batch is is effectevely the `job-description` name.
+  - `image_and_tag`: the required container repository referecne for the image you would like to run.  Currently that is: `ghcr.io/usace-cloud-compute/seed-generator-plugin:latest`
+  - `description`: an optional description for the registered plugin
+  - `compute_environment`: the compute resource requirements
+    - `vcpu`: 1 vcpu is adequate for this plugin
+    - `memory`: 1GB or less is ok for this plugin
+    - `extraHosts`: if you are running using the Docker provider on a local system, you might need to set an extra host.  This is not necessary on windows or osx, but might be on a local linux system
+  - `environment`: environment variables necessary to run the image.  Fro the seed generator, you will need two sets of environment variables:
+    - `cloud compute storage`: environment variables for the cloud compute sdk to retrieve payloads from cloud compute storage
+    - `data storage`: environment variabled necessary to connect, read, and write to the data store
+  - `credentials`:
+    - sets of credentials for the clouyd compute storagte and data storege.  Credentials are managed in the compute provider credential management system, for example AWS Secrets manager for Amazon.
+
+  - #### Seed Generator Local Docker Plugin Manifest using local minio to emulate S3 storage
+    ```json
+    {
+        "name":"FFRD-SEED-GENERATOR",
+        "image_and_tag":"ghcr.io/usace-cloud-compute/seed-generator-plugin:latest",
+        "description":"Seed Generator",
+        "compute_environment":{
+            "vcpu":"1",
+            "memory":"1000"
+        },
+        "environment":[
+            {
+                "name":  "CC_AWS_DEFAULT_REGION",
+                "value": "us-east-1"
+            },
+            {
+                "name":  "CC_AWS_S3_BUCKET",
+                "value": "ccstore"
+            },
+            {
+                "name":  "CC_AWS_ENDPOINT",
+                "value": "http://host.docker.internal:9000"
+            },
+            {
+                "name":  "FFRD_AWS_DEFAULT_REGION",
+                "value": "us-east-1"
+            },
+            {
+                "name":  "FFRD_AWS_S3_BUCKET",
+                "value": "project-data"
+            },
+            {
+                "name":  "FFRD_AWS_ENDPOINT",
+                "value": "http://host.docker.internal:9000"
+            }
+        ],
+        "credentials":[
+            {
+                "name":  "CC_AWS_ACCESS_KEY_ID",
+                "value": "secretsmanager:AWS_ACCESS_KEY_ID::"
+            },
+            {
+                "name":  "CC_AWS_SECRET_ACCESS_KEY",
+                "value": "secretsmanager:AWS_SECRET_ACCESS_KEY::"
+            },
+            {
+                "name":  "FFRD_AWS_ACCESS_KEY_ID",
+                "value": "secretsmanager:AWS_ACCESS_KEY_ID::"
+            },
+            {
+                "name":  "FFRD_AWS_SECRET_ACCESS_KEY",
+                "value": "secretsmanager:AWS_SECRET_ACCESS_KEY::"
+            }
+        ]
+    }
+    ```
+
+    - #### Seed Generator AWS Batch Plugin Manifest
+    ```json
+    {
+        "name":"FFRD-SEED-GENERATOR",
+        "image_and_tag":"ghcr.io/usace-cloud-compute/seed-generator-plugin:latest",
+        "description":"Seed Generator",
+        "compute_environment":{
+            "vcpu":"1",
+            "memory":"1000",
+            "extraHosts": ["host.docker.internal:host-gateway"]
+        },
+        "environment":[
+            {
+                "name":  "CC_AWS_DEFAULT_REGION",
+                "value": "us-east-1"
+            },
+            {
+                "name":  "CC_AWS_S3_BUCKET",
+                "value": "ccstore"
+            },
+            {
+                "name":  "FFRD_AWS_DEFAULT_REGION",
+                "value": "us-east-1"
+            },
+            {
+                "name":  "FFRD_AWS_S3_BUCKET",
+                "value": "project-data"
+            }
+        ],
+        "credentials":[
+            {
+                "name":  "CC_AWS_ACCESS_KEY_ID",
+                "value": "arn:aws-us:secretsmanager:us-east-1:012345687:secret:prod/CloudCompute/S3-gggg:AWS_ACCESS_KEY_ID::"
+            },
+            {
+                "name":  "CC_AWS_SECRET_ACCESS_KEY",
+                "value": "arn:aws-us:secretsmanager:us-east-1:012345687:secret:prod/CloudCompute/S3-gggg:AWS_ACCESS_KEY_ID::"
+            },
+            {
+                "name":  "FFRD_AWS_ACCESS_KEY_ID",
+                "value": "arn:aws-us:secretsmanager:us-east-1:012345687:secret:prod/CloudCompute/S3-gggg:AWS_ACCESS_KEY_ID::"
+            },
+            {
+                "name":  "FFRD_AWS_SECRET_ACCESS_KEY",
+                "value": "arn:aws-us:secretsmanager:us-east-1:012345687:secret:prod/CloudCompute/S3-gggg:AWS_ACCESS_KEY_ID::"
+            }
+        ]
+    }
+    ```
